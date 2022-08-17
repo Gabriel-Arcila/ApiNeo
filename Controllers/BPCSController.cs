@@ -25,7 +25,7 @@ namespace ConsultasSQL.Controllers{
             dataTable.Load(objResult);
             string JSONString = string.Empty;
             JSONString = JsonConvert.SerializeObject(dataTable);
-
+            obj.Connection = conexionBPCS.CodCerrarConex();
             return JSONString;
         }
     }

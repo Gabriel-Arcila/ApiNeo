@@ -3253,11 +3253,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\gabriel.arcila\\Documents\\Proyectos\\ConsultasSQL\\ConsultasSQL.csproj",
+      "projectUniqueName": "C:\\Users\\gabriel.arcila\\Desktop\\ConsultasSQL\\ConsultasSQL.csproj",
       "projectName": "ConsultasSQL",
-      "projectPath": "C:\\Users\\gabriel.arcila\\Documents\\Proyectos\\ConsultasSQL\\ConsultasSQL.csproj",
+      "projectPath": "C:\\Users\\gabriel.arcila\\Desktop\\ConsultasSQL\\ConsultasSQL.csproj",
       "packagesPath": "C:\\Users\\gabriel.arcila\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\gabriel.arcila\\Documents\\Proyectos\\ConsultasSQL\\obj\\",
+      "outputPath": "C:\\Users\\gabriel.arcila\\Desktop\\ConsultasSQL\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\gabriel.arcila\\AppData\\Roaming\\NuGet\\NuGet.Config",

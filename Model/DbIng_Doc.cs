@@ -1,24 +1,26 @@
 using System.Data;
 using System.Data.OleDb;
+using Microsoft.Data.SqlClient;
 
 namespace ConsultasSQL.Model
 {
-    public class DBconexionDbIng
+    public class DbIngDoc
     {
-        // private OleDbConnection ConCodPro = new OleDbConnection("Provider=IBMDA400.DataSource.1;Data Source=APPN.VENEZUEL;Password=USRPC;User ID=USRPC");
+        private SqlConnection ConOpe = new SqlConnection("Data Source=10.20.1.60\\DBVEN01; Initial Catalog =DOC_IngI; TrustServerCertificate=True;Persist Security Info=True;User ID=usrLectura;Password= ");
+        //private SqlConnection ConOpe = new SqlConnection("Data Source=10.20.1.60\\DBVEN01; Initial Catalog = SIPDATABASE;User ID=portaluser;Password=PORT34erySADF ");
         // // Conexion para los centros y ordenes de producción
-        // public OleDbConnection CodAbrirConex()
-        // {
-        //     if (ConCodPro.State == ConnectionState.Closed)
-        //         ConCodPro.Open();
-        //     return ConCodPro;
-        // }
+        public SqlConnection OpeAbrirConex()
+        {
+            if (ConOpe.State == ConnectionState.Closed)
+                ConOpe.Open();
+            return ConOpe;
+        }
 
-        // public OleDbConnection CodCerrarConex()
-        // {
-        //     if (ConCodPro.State == ConnectionState.Open)
-        //         ConCodPro.Close();
-        //     return ConCodPro;
-        // }
+        public SqlConnection OpeCerrarConex()
+        {
+            if (ConOpe.State == ConnectionState.Open)
+                ConOpe.Close();
+            return ConOpe;
+        }
     }
 }

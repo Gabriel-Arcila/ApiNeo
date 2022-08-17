@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "zWqQlL4pjx6c1pyBB1JcYq10zEx8TaM7h6NN2YsJqHFGR23i6F4ib+V7DLkhexdOnsx60yrrtk0duIve6caICQ==",
+  "dgSpecHash": "tU2g7x/etIRpfV3MXoFqDjSaJCSWDFOaiMgDclC/mMi4RqH5NPpt+9zWC7u0OfR66N0fqxjPUqXvY+DtVxhTtQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\gabriel.arcila\\Documents\\Proyectos\\ConsultasSQL\\ConsultasSQL.csproj",
+  "projectFilePath": "C:\\Users\\gabriel.arcila\\Desktop\\ConsultasSQL\\ConsultasSQL.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\gabriel.arcila\\.nuget\\packages\\azure.core\\1.24.0\\azure.core.1.24.0.nupkg.sha512",
     "C:\\Users\\gabriel.arcila\\.nuget\\packages\\azure.identity\\1.6.0\\azure.identity.1.6.0.nupkg.sha512",
