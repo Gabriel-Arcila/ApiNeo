@@ -25,9 +25,236 @@ namespace ConsultasSQL.Controllers{
 
         SqlDataReader? DataReaderSIPDATABASE;
 
+        public List<string> MaquinasGesplineActivos1turno(){
+            List<string> maquina = new List<string>();
+            var dataTable = new DataTable();
+            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
+                comandSIPDATABASE.CommandText = @"
+                        SELECT CUADROPNFINAL.CODIGOPROCESO
+                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
+                        WHERE PARADASEJECUTADAS.FECHAYHORAPARADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '05:50:00' AND PARADASEJECUTADAS.FECHAYHORAPARADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '18:00:00'
+                        GROUP BY CUADROPNFINAL.CODIGOPROCESO
+                        ORDER BY CUADROPNFINAL.CODIGOPROCESO;
+                ";  
+            DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
+            dataTable.Load(DataReaderSIPDATABASE);
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                maquina.Add(row["CODIGOPROCESO"].ToString());
+            }
+            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            return maquina;
+        }
+
+        public List<string> MaquinasGesplineActivos2turnoDespues0am(){
+            List<string> maquina = new List<string>();
+            var dataTable = new DataTable();
+            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
+                comandSIPDATABASE.CommandText = @"
+                        SELECT CUADROPNFINAL.CODIGOPROCESO
+                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
+                        WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),-1) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '6:00:00'
+                        GROUP BY CUADROPNFINAL.CODIGOPROCESO
+                        ORDER BY CUADROPNFINAL.CODIGOPROCESO;
+                ";  
+            DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
+            dataTable.Load(DataReaderSIPDATABASE);
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                maquina.Add(row["CODIGOPROCESO"].ToString());
+            }
+            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            return maquina;
+        }
+
+        public List<string> MaquinasGesplineActivos2turnoAntes0am(){
+            List<string> maquina = new List<string>();
+            var dataTable = new DataTable();
+            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
+                comandSIPDATABASE.CommandText = @"
+                        SELECT CUADROPNFINAL.CODIGOPROCESO
+                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
+                        WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),1) + '6:00:00'
+                        GROUP BY CUADROPNFINAL.CODIGOPROCESO
+                        ORDER BY CUADROPNFINAL.CODIGOPROCESO;
+                ";  
+            DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
+            dataTable.Load(DataReaderSIPDATABASE);
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                maquina.Add(row["CODIGOPROCESO"].ToString());
+            }
+            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            return maquina;
+        }
+
+        public Dictionary<string,Dictionary<string,int>> MaquinaProductosProduccionActual1turno(){
+            var dataTable = new DataTable();
+            Dictionary<string,Dictionary<string,int>> producción = new Dictionary<string,Dictionary<string,int>>();
+            List<string> maquinas = MaquinasGesplineActivos1turno();
+            Dictionary<string,int> temporal;
+
+            foreach(string maquina in maquinas){
+                temporal = new Dictionary<string,int>();
+                producción.Add(maquina,temporal);
+            }
+
+            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            CommandBPCS.CommandText = @"
+                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS PRODUCCION 
+                        FROM C20A237W.VENLX835F.ITH ITH 
+                        WHERE (ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") +@") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
+                        GROUP BY ITH.THWRKC, ITH.TPROD 
+                        ORDER BY ITH.THWRKC";
+            DataReaderBPCS = CommandBPCS.ExecuteReader();
+            dataTable.Load(DataReaderBPCS);
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                if (producción.ContainsKey(row["THWRKC"].ToString()))
+                {
+                    temporal = producción[row["THWRKC"].ToString()];
+                    temporal.Add(row["TPROD"].ToString(),int.Parse(row["PRODUCCION"].ToString()));
+                    producción[row["THWRKC"].ToString()] = temporal;
+                }else{
+                    continue;
+                }
+            }
+            return producción;
+            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        }
+
+        public Dictionary<string,Dictionary<string,int>> MaquinaProductosProduccionActual2turnoDespues0am(){
+            var dataTable = new DataTable();
+            Dictionary<string,Dictionary<string,int>> producción = new Dictionary<string,Dictionary<string,int>>();
+            List<string> maquinas = MaquinasGesplineActivos2turnoDespues0am();
+            Dictionary<string,int> temporal;
+
+            foreach(string maquina in maquinas){
+                temporal = new Dictionary<string,int>();
+                producción.Add(maquina,temporal);
+            }
+
+            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            CommandBPCS.CommandText = @"
+                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS PRODUCCION
+                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=0 And ITH.THTIME<60000))
+                        GROUP BY ITH.THWRKC, ITH.TPROD
+                        ORDER BY ITH.THWRKC;
+                        ";
+            DataReaderBPCS = CommandBPCS.ExecuteReader();
+            dataTable.Load(DataReaderBPCS);
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                if (producción.ContainsKey(row["THWRKC"].ToString()))
+                {
+                    temporal = producción[row["THWRKC"].ToString()];
+                    temporal.Add(row["TPROD"].ToString(),int.Parse(row["PRODUCCION"].ToString()));
+                    producción[row["THWRKC"].ToString()] = temporal;
+                }else{
+                    continue;
+                }
+            }
+
+            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+            dataTable = new DataTable();
+
+            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            CommandBPCS.CommandText = @"
+                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY)
+                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.AddDays(-1).ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME<=235959))
+                        GROUP BY ITH.THWRKC, ITH.TPROD;
+                        ";
+            DataReaderBPCS = CommandBPCS.ExecuteReader();
+            dataTable.Load(DataReaderBPCS);
+            
+            int temporalNumero;
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                if (producción.ContainsKey(row["THWRKC"].ToString()))
+                {
+                    temporal = producción[row["THWRKC"].ToString()];
+
+                    if(temporal.ContainsKey(row["TPROD"].ToString())){
+
+                        temporalNumero = temporal[row["TPROD"].ToString()];
+
+                        temporalNumero += int.Parse(row["PRODUCCION"].ToString());
+
+                        temporal[row["TPROD"].ToString()] = temporalNumero;
+
+                    }else{
+                        temporal.Add(row["TPROD"].ToString(),int.Parse(row["PRODUCCION"].ToString()));
+                    }
+                    producción[row["THWRKC"].ToString()] = temporal;
+                }else{
+                    continue;
+                }
+            }
+            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+            return producción;
+        }
+
+        public Dictionary<string,Dictionary<string,int>> MaquinaProductosProduccionActual2turnoAntes0am(){
+            var dataTable = new DataTable();
+            Dictionary<string,Dictionary<string,int>> producción = new Dictionary<string,Dictionary<string,int>>();
+            List<string> maquinas = MaquinasGesplineActivos2turnoAntes0am();
+            Dictionary<string,int> temporal;
+
+            foreach(string maquina in maquinas){
+                temporal = new Dictionary<string,int>();
+                producción.Add(maquina,temporal);
+            }
+
+
+            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            CommandBPCS.CommandText = @"
+                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY)
+                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME<=235959))
+                        GROUP BY ITH.THWRKC, ITH.TPROD;
+                        ";
+            DataReaderBPCS = CommandBPCS.ExecuteReader();
+            dataTable.Load(DataReaderBPCS);
+            
+            int temporalNumero;
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                if (producción.ContainsKey(row["THWRKC"].ToString()))
+                {
+                    temporal = producción[row["THWRKC"].ToString()];
+
+                    if(temporal.ContainsKey(row["TPROD"].ToString())){
+
+                        temporalNumero = temporal[row["TPROD"].ToString()];
+
+                        temporalNumero += int.Parse(row["PRODUCCION"].ToString());
+
+                        temporal[row["TPROD"].ToString()] = temporalNumero;
+
+                    }else{
+                        temporal.Add(row["TPROD"].ToString(),int.Parse(row["PRODUCCION"].ToString()));
+                    }
+                    producción[row["THWRKC"].ToString()] = temporal;
+                }else{
+                    continue;
+                }
+            }
+            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+            return producción;
+        }
+
         [HttpGet]
-        [Route("objePorHoraProductoActualEstandar")]
-        public dynamic objePorHoraProductoActualEstandar(){
+        [Route("objePorHoraProductoActualEstandar1turno")]
+        public dynamic objePorHoraProductoActualEstandar1turno(){
             Dictionary<string,int> diccionario = new Dictionary<string,int>();
             CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
             CommandBPCS.CommandText = @"
