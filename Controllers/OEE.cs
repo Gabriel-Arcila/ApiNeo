@@ -4,7 +4,7 @@ using ConsultasSQL.Model;
 using System.Data.OleDb;
 using System.Data;
 using Newtonsoft.Json;
-
+using ConsultasSQL.Logic;
 namespace ConsultasSQL.Controllers{
     [ApiController]
     [Route("OEE")]
@@ -23,235 +23,11 @@ namespace ConsultasSQL.Controllers{
         private DbSIPDATABASE conexionSIPDATABASE = new DbSIPDATABASE();
         private SqlCommand comandSIPDATABASE = new SqlCommand();
 
+        private BPCS bpcs = new BPCS();
+
         SqlDataReader? DataReaderSIPDATABASE;
-
-        public List<string> MaquinasGesplineActivos1turno(){
-            List<string> maquina = new List<string>();
-            var dataTable = new DataTable();
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
-                comandSIPDATABASE.CommandText = @"
-                        SELECT CUADROPNFINAL.CODIGOPROCESO
-                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
-                        WHERE PARADASEJECUTADAS.FECHAYHORAPARADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '05:50:00' AND PARADASEJECUTADAS.FECHAYHORAPARADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '18:00:00'
-                        GROUP BY CUADROPNFINAL.CODIGOPROCESO
-                        ORDER BY CUADROPNFINAL.CODIGOPROCESO;
-                ";  
-            DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
-            dataTable.Load(DataReaderSIPDATABASE);
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                maquina.Add(row["CODIGOPROCESO"].ToString());
-            }
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
-            return maquina;
-        }
-
-        public List<string> MaquinasGesplineActivos2turnoDespues0am(){
-            List<string> maquina = new List<string>();
-            var dataTable = new DataTable();
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
-                comandSIPDATABASE.CommandText = @"
-                        SELECT CUADROPNFINAL.CODIGOPROCESO
-                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
-                        WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),-1) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '6:00:00'
-                        GROUP BY CUADROPNFINAL.CODIGOPROCESO
-                        ORDER BY CUADROPNFINAL.CODIGOPROCESO;
-                ";  
-            DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
-            dataTable.Load(DataReaderSIPDATABASE);
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                maquina.Add(row["CODIGOPROCESO"].ToString());
-            }
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
-            return maquina;
-        }
-
-        public List<string> MaquinasGesplineActivos2turnoAntes0am(){
-            List<string> maquina = new List<string>();
-            var dataTable = new DataTable();
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
-                comandSIPDATABASE.CommandText = @"
-                        SELECT CUADROPNFINAL.CODIGOPROCESO
-                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
-                        WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),1) + '6:00:00'
-                        GROUP BY CUADROPNFINAL.CODIGOPROCESO
-                        ORDER BY CUADROPNFINAL.CODIGOPROCESO;
-                ";  
-            DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
-            dataTable.Load(DataReaderSIPDATABASE);
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                maquina.Add(row["CODIGOPROCESO"].ToString());
-            }
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
-            return maquina;
-        }
-
-        public Dictionary<string,Dictionary<string,int>> MaquinaProductosProduccionActual1turno(){
-            var dataTable = new DataTable();
-            Dictionary<string,Dictionary<string,int>> producción = new Dictionary<string,Dictionary<string,int>>();
-            List<string> maquinas = MaquinasGesplineActivos1turno();
-            Dictionary<string,int> temporal;
-
-            foreach(string maquina in maquinas){
-                temporal = new Dictionary<string,int>();
-                producción.Add(maquina,temporal);
-            }
-
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS PRODUCCION 
-                        FROM C20A237W.VENLX835F.ITH ITH 
-                        WHERE (ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") +@") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
-                        GROUP BY ITH.THWRKC, ITH.TPROD 
-                        ORDER BY ITH.THWRKC";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
-            dataTable.Load(DataReaderBPCS);
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                if (producción.ContainsKey(row["THWRKC"].ToString()))
-                {
-                    temporal = producción[row["THWRKC"].ToString()];
-                    temporal.Add(row["TPROD"].ToString(),int.Parse(row["PRODUCCION"].ToString()));
-                    producción[row["THWRKC"].ToString()] = temporal;
-                }else{
-                    continue;
-                }
-            }
-            return producción;
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-        }
-
-        public Dictionary<string,Dictionary<string,int>> MaquinaProductosProduccionActual2turnoDespues0am(){
-            var dataTable = new DataTable();
-            Dictionary<string,Dictionary<string,int>> producción = new Dictionary<string,Dictionary<string,int>>();
-            List<string> maquinas = MaquinasGesplineActivos2turnoDespues0am();
-            Dictionary<string,int> temporal;
-
-            foreach(string maquina in maquinas){
-                temporal = new Dictionary<string,int>();
-                producción.Add(maquina,temporal);
-            }
-
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS PRODUCCION
-                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=0 And ITH.THTIME<60000))
-                        GROUP BY ITH.THWRKC, ITH.TPROD
-                        ORDER BY ITH.THWRKC;
-                        ";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
-            dataTable.Load(DataReaderBPCS);
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                if (producción.ContainsKey(row["THWRKC"].ToString()))
-                {
-                    temporal = producción[row["THWRKC"].ToString()];
-                    temporal.Add(row["TPROD"].ToString(),int.Parse(row["PRODUCCION"].ToString()));
-                    producción[row["THWRKC"].ToString()] = temporal;
-                }else{
-                    continue;
-                }
-            }
-
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            dataTable = new DataTable();
-
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY)
-                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.AddDays(-1).ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME<=235959))
-                        GROUP BY ITH.THWRKC, ITH.TPROD;
-                        ";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
-            dataTable.Load(DataReaderBPCS);
-            
-            int temporalNumero;
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                if (producción.ContainsKey(row["THWRKC"].ToString()))
-                {
-                    temporal = producción[row["THWRKC"].ToString()];
-
-                    if(temporal.ContainsKey(row["TPROD"].ToString())){
-
-                        temporalNumero = temporal[row["TPROD"].ToString()];
-
-                        temporalNumero += int.Parse(row["PRODUCCION"].ToString());
-
-                        temporal[row["TPROD"].ToString()] = temporalNumero;
-
-                    }else{
-                        temporal.Add(row["TPROD"].ToString(),int.Parse(row["PRODUCCION"].ToString()));
-                    }
-                    producción[row["THWRKC"].ToString()] = temporal;
-                }else{
-                    continue;
-                }
-            }
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            return producción;
-        }
-
-        public Dictionary<string,Dictionary<string,int>> MaquinaProductosProduccionActual2turnoAntes0am(){
-            var dataTable = new DataTable();
-            Dictionary<string,Dictionary<string,int>> producción = new Dictionary<string,Dictionary<string,int>>();
-            List<string> maquinas = MaquinasGesplineActivos2turnoAntes0am();
-            Dictionary<string,int> temporal;
-
-            foreach(string maquina in maquinas){
-                temporal = new Dictionary<string,int>();
-                producción.Add(maquina,temporal);
-            }
-
-
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY)
-                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME<=235959))
-                        GROUP BY ITH.THWRKC, ITH.TPROD;
-                        ";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
-            dataTable.Load(DataReaderBPCS);
-            
-            int temporalNumero;
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                if (producción.ContainsKey(row["THWRKC"].ToString()))
-                {
-                    temporal = producción[row["THWRKC"].ToString()];
-
-                    if(temporal.ContainsKey(row["TPROD"].ToString())){
-
-                        temporalNumero = temporal[row["TPROD"].ToString()];
-
-                        temporalNumero += int.Parse(row["PRODUCCION"].ToString());
-
-                        temporal[row["TPROD"].ToString()] = temporalNumero;
-
-                    }else{
-                        temporal.Add(row["TPROD"].ToString(),int.Parse(row["PRODUCCION"].ToString()));
-                    }
-                    producción[row["THWRKC"].ToString()] = temporal;
-                }else{
-                    continue;
-                }
-            }
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            return producción;
-        }
-
+        
+        //TODO: Cambiar este metodo
         [HttpGet]
         [Route("objePorHoraProductoActualEstandar1turno")]
         public dynamic objePorHoraProductoActualEstandar1turno(){
@@ -287,6 +63,7 @@ namespace ConsultasSQL.Controllers{
             return JSONString;
         }
 
+        //TODO: Cambiar este metodo
         [HttpGet]
         [Route("objePorHoraProductoActualPropia")]
         public dynamic objePorHoraProductoActualPropia(){
@@ -323,212 +100,302 @@ namespace ConsultasSQL.Controllers{
         }
 
         [HttpGet]
-        [Route("ProduccionCajaActualPorHoraEstanadar")]
-        public dynamic ProduccionCajaActualPorHoraEstanadar(){
-            Dictionary<string,decimal> diccionario = new Dictionary<string,decimal>();  
-            var dataTable = new DataTable();
-
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                    SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, Sum(ITH.TQTY) As Cajas
-                    FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                    WHERE (ITH.TPROD = IIM.IPROD) AND ((ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000))
-                    GROUP BY ITH.THWRKC, ITH.TPROD, IIM.IDESC
-                    ORDER BY ITH.THWRKC";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
-
-
-            while(DataReaderBPCS.Read())
-            {
-                CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
-                CommandIngDoc.CommandText = @"
-                        SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha,BD_SeguimientoPlanta.BPCS.IIM.IMFLPF
-                        FROM [DOC_IngI].[dbo].[ObPrConver] 
-                        INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD 
-                        Where dbo.ObPrConver.OcCentro = '"+ DataReaderBPCS.GetValue(0).ToString() +"' AND dbo.ObPrConver.OcCprod = '"+ DataReaderBPCS.GetString(1) +"' ORDER BY OcFecha desc;";
-                DataReaderIngDoc = CommandIngDoc.ExecuteReader();
-                if(DataReaderIngDoc.Read()){
-                    diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetDecimal(3) * Decimal.Parse(DataReaderBPCS.GetValue(3).ToString()));
-                }
-                CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
-                //break;
-            }
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            // obj.Connection = conexionIngDoc.OpeAbrirConex();
-            // obj.CommandText = "SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD ORDER BY OcFecha desc;";
-            // objResult = obj.ExecuteReader();
-    
-            ProduccionCajaActualEstandar();
-            //dataTable.Load(DataReaderBPCS);
-
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
-            comandSIPDATABASE.CommandText = @"
-                    SELECT PROCESO.CODIGOPROCESO, ((AVG(ENTRADAEJECUCION.HORASEJECUTADAS)) - (ISNULL(SUM(CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float))* 24,0))) AS [Tiempo Trabajado]
-                    FROM SIPDATABASE.dbo.ENTRADAEJECUCION ENTRADAEJECUCION
-                    INNER JOIN TRANSMICIONWEB ON TRANSMICIONWEB.CODIGOENTRADAEJECUCION = ENTRADAEJECUCION.CODIGOENTRADAEJECUCION 
-                    INNER JOIN TUPLAEJECUCION ON TUPLAEJECUCION.CODIGOTUPLA = ENTRADAEJECUCION.CODIGOTUPLA
-                    INNER JOIN PROCESO ON PROCESO.CODIGOPROCESO = TUPLAEJECUCION.CODIGOPROCESO
-                    INNER JOIN PARADAS ON PARADAS.CODIGOPARADA = TRANSMICIONWEB.CODIGOPARADA
-                    LEFT  JOIN PARADASEJECUTADAS ON PARADASEJECUTADAS.CODIGOENTRADAEJECUCION = ENTRADAEJECUCION.CODIGOENTRADAEJECUCION
-                    GROUP BY PROCESO.CODIGOPROCESO
-                    ORDER BY PROCESO.CODIGOPROCESO;
-                ";
-            DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
-
-            dataTable.Load(DataReaderSIPDATABASE);
-
-            string? codigoBPCS;
-            decimal cajasProducidas;
-            
-            foreach(DataRow row in dataTable.Rows)
-            
-            {
-                try
-                {
-                    decimal a = diccionario[row["CODIGOPROCESO"].ToString()];
-
-                    decimal b = Decimal.Parse((row["Tiempo Trabajado"].ToString()));
-
-                    diccionario[row["CODIGOPROCESO"].ToString()] = diccionario[row["CODIGOPROCESO"].ToString()] / Decimal.Parse((row["Tiempo Trabajado"].ToString()));
-                }
-                catch (KeyNotFoundException)
-                {
-                    diccionario.Add(row["CODIGOPROCESO"].ToString(),0);
-                }
-                // if(row["CODIGOPROCESO"].ToString().Equals(codigoBPCS)){
-                //     diccionario.Add(row["CODIGOPROCESO"].ToString(), cajasProducidas/Decimal.Parse((row["Tiempo Trabajado"].ToString())));
-                //     break;
-                // }
-            }   
-            
-
+        [Route("ProduccionCajaActualPropia1turno")]
+        public dynamic ProduccionCajaActualPorHoraPropia1turno(){
             string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(diccionario);
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            JSONString = JsonConvert.SerializeObject(bpcs.MaquinaProductosProduccionActual1turno());
             return JSONString;
         }
 
         [HttpGet]
-        [Route("ProduccionCajaActualPorHoraPropia")]
-        public dynamic ProduccionCajaActualPorHoraPropia(){
-            Dictionary<string,decimal> diccionario = new Dictionary<string,decimal>();  
-            var dataTable = new DataTable();
-            // obj.Connection = conexionIngDoc.OpeAbrirConex();
-            // obj.CommandText = "SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD ORDER BY OcFecha desc;";
-            // objResult = obj.ExecuteReader();
-    
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                    SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS Produccion 
-                    FROM C20A237W.VENLX835F.ITH ITH 
-                    WHERE (ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
-                    GROUP BY ITH.THWRKC, ITH.TPROD 
-                    ORDER BY ITH.THWRKC";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
-            //dataTable.Load(DataReaderBPCS);
-
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
-            comandSIPDATABASE.CommandText = @"
-                    SELECT PROCESO.CODIGOPROCESO, ((AVG(ENTRADAEJECUCION.HORASEJECUTADAS)) - (ISNULL(SUM(CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float))* 24,0))) AS [Tiempo Trabajado]
-                    FROM SIPDATABASE.dbo.ENTRADAEJECUCION ENTRADAEJECUCION
-                    INNER JOIN TRANSMICIONWEB ON TRANSMICIONWEB.CODIGOENTRADAEJECUCION = ENTRADAEJECUCION.CODIGOENTRADAEJECUCION 
-                    INNER JOIN TUPLAEJECUCION ON TUPLAEJECUCION.CODIGOTUPLA = ENTRADAEJECUCION.CODIGOTUPLA
-                    INNER JOIN PROCESO ON PROCESO.CODIGOPROCESO = TUPLAEJECUCION.CODIGOPROCESO
-                    INNER JOIN PARADAS ON PARADAS.CODIGOPARADA = TRANSMICIONWEB.CODIGOPARADA
-                    LEFT  JOIN PARADASEJECUTADAS ON PARADASEJECUTADAS.CODIGOENTRADAEJECUCION = ENTRADAEJECUCION.CODIGOENTRADAEJECUCION
-                    GROUP BY PROCESO.CODIGOPROCESO
-                    ORDER BY PROCESO.CODIGOPROCESO;
-                ";
-            DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
-
-            dataTable.Load(DataReaderSIPDATABASE);
-
-            string? codigoBPCS;
-            decimal cajasProducidas;
-            while(DataReaderBPCS.Read()){
-                codigoBPCS = DataReaderBPCS.GetValue(0).ToString();
-                cajasProducidas = Decimal.Parse(DataReaderBPCS.GetValue(2).ToString());
-
-                foreach(DataRow row in dataTable.Rows)
-                {
-                    if(row["CODIGOPROCESO"].ToString().Equals(codigoBPCS)){
-                        diccionario.Add(row["CODIGOPROCESO"].ToString(), cajasProducidas/Decimal.Parse((row["Tiempo Trabajado"].ToString())));
-                        break;
-                    }
-                }   
-            }
-
+        [Route("ProduccionCajaActualEstandar1turno")]
+        public dynamic ProduccionCajaActualPorHoraEstandar1turno(){
             string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(diccionario);
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            Dictionary<string, Dictionary<string, int>>  a = bpcs.MaquinaProductosProduccionActual1turno();
+            JSONString = JsonConvert.SerializeObject(bpcs.conversionTotalAEstandarPormaquinaYproducto(a));
             return JSONString;
         }
-        [HttpGet]
-        [Route("ProduccionCajaActualPropia")]
-        public dynamic ProduccionCajaActualPropia(){
-            var dataTable = new DataTable();
-            // obj.Connection = conexionIngDoc.OpeAbrirConex();
-            // obj.CommandText = "SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD ORDER BY OcFecha desc;";
-            // objResult = obj.ExecuteReader();
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                    SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, Sum(ITH.TQTY) As Cajas
-                    FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                    WHERE (ITH.TPROD = IIM.IPROD) AND ((ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000))
-                    GROUP BY ITH.THWRKC, ITH.TPROD, IIM.IDESC
-                    ORDER BY ITH.THWRKC";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
-            dataTable.Load(DataReaderBPCS);
 
+        [HttpGet]
+        [Route("ProduccionCajaActualPropia2turno/{band}")]
+        public dynamic ProduccionCajaActualPorHoraPropia2turno(bool band){
             string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(dataTable);
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            return JSONString;
+            if(band){
+                JSONString = JsonConvert.SerializeObject(bpcs.MaquinaProductosProduccionActual2turnoAntes0am());
+            }else{
+                JSONString = JsonConvert.SerializeObject(bpcs.MaquinaProductosProduccionActual2turnoDespues0am());
             }
+            return JSONString;
+        }
+
+        [HttpGet]
+        [Route("ProduccionCajaActualEstanadar2turno/{band}")]
+        public dynamic ProduccionCajaActualPorHoraEstanadar2turno(bool band){
+            string JSONString = string.Empty;
+            Dictionary<string, Dictionary<string, int>>  a;
+            if(band){
+                a = bpcs.MaquinaProductosProduccionActual2turnoAntes0am();
+            }else{
+                a = bpcs.MaquinaProductosProduccionActual2turnoDespues0am();
+            }
+            JSONString = JsonConvert.SerializeObject(bpcs.conversionTotalAEstandarPormaquinaYproducto(a));
+            return JSONString;
+        }
+
+        [HttpGet]
+        [Route("ProduccionCajaActualPorHoraPropia/{tiempo}")]
+        public dynamic ProduccionCajaActualPorHoraPropia(int tiempo){
+            string JSONString = string.Empty;
+            Dictionary<string,Dictionary<string,int>> produccion = new Dictionary<string,Dictionary<string,int>>();
+            if(tiempo == 1){ //* si es igual a 1 es primer turno
+                produccion = bpcs.MaquinaProductosProduccionActual1turno();
+            }else if(tiempo == 2){//* si es igual es 2 es primer turno antes de 0 am
+                produccion = bpcs.MaquinaProductosProduccionActual2turnoAntes0am();
+            }else if(tiempo == 3){ //* si es igual es 2 es primer turno despues de 0 am
+                produccion = bpcs.MaquinaProductosProduccionActual2turnoDespues0am();
+            }else{
+                return JSONString;
+            }
+            JSONString = JsonConvert.SerializeObject(bpcs.ProduccionActualPorMaquinaPorHora(produccion,tiempo));
+            return JSONString;
+        }
+
+        [HttpGet]
+        [Route("ProduccionCajaActualPorHoraEstanadar/{tiempo}")]
+        public dynamic ProduccionCajaActualPorHoraEstanadar(int tiempo){
+            string JSONString = string.Empty;
+            Dictionary<string,Dictionary<string,int>> produccion = new Dictionary<string,Dictionary<string,int>>();
+            if(tiempo == 1){ //* si es igual a 1 es primer turno
+                produccion = bpcs.MaquinaProductosProduccionActual1turno();
+            }else if(tiempo == 2){//* si es igual es 2 es primer turno antes de 0 am
+                produccion = bpcs.MaquinaProductosProduccionActual2turnoAntes0am();
+            }else if(tiempo == 3){ //* si es igual es 2 es primer turno despues de 0 am
+                produccion = bpcs.MaquinaProductosProduccionActual2turnoDespues0am();
+            }else{
+                return JSONString;
+            }
+            produccion = bpcs.conversionTotalAEstandarPormaquinaYproducto(produccion);
+            JSONString = JsonConvert.SerializeObject(bpcs.ProduccionActualPorMaquinaPorHora(produccion,tiempo));
+            return JSONString;
+        }
+
+        // [HttpGet]
+        // [Route("ProduccionCajaActualPorHoraEstanadar")]
+        // public dynamic ProduccionCajaActualPorHoraEstanadar(){
+        //     Dictionary<string,decimal> diccionario = new Dictionary<string,decimal>();  
+        //     var dataTable = new DataTable();
+
+        //     CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+        //     CommandBPCS.CommandText = @"
+        //             SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, Sum(ITH.TQTY) As Cajas
+        //             FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+        //             WHERE (ITH.TPROD = IIM.IPROD) AND ((ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000))
+        //             GROUP BY ITH.THWRKC, ITH.TPROD, IIM.IDESC
+        //             ORDER BY ITH.THWRKC";
+        //     DataReaderBPCS = CommandBPCS.ExecuteReader();
+
+
+        //     while(DataReaderBPCS.Read())
+        //     {
+        //         CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
+        //         CommandIngDoc.CommandText = @"
+        //                 SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha,BD_SeguimientoPlanta.BPCS.IIM.IMFLPF
+        //                 FROM [DOC_IngI].[dbo].[ObPrConver] 
+        //                 INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD 
+        //                 Where dbo.ObPrConver.OcCentro = '"+ DataReaderBPCS.GetValue(0).ToString() +"' AND dbo.ObPrConver.OcCprod = '"+ DataReaderBPCS.GetString(1) +"' ORDER BY OcFecha desc;";
+        //         DataReaderIngDoc = CommandIngDoc.ExecuteReader();
+        //         if(DataReaderIngDoc.Read()){
+        //             diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetDecimal(3) * Decimal.Parse(DataReaderBPCS.GetValue(3).ToString()));
+        //         }
+        //         CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
+        //         //break;
+        //     }
+        //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        //     // obj.Connection = conexionIngDoc.OpeAbrirConex();
+        //     // obj.CommandText = "SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD ORDER BY OcFecha desc;";
+        //     // objResult = obj.ExecuteReader();
+    
+        //     ProduccionCajaActualEstandar();
+        //     //dataTable.Load(DataReaderBPCS);
+
+        //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
+        //     comandSIPDATABASE.CommandText = @"
+        //             SELECT PROCESO.CODIGOPROCESO, ((AVG(ENTRADAEJECUCION.HORASEJECUTADAS)) - (ISNULL(SUM(CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float))* 24,0))) AS [Tiempo Trabajado]
+        //             FROM SIPDATABASE.dbo.ENTRADAEJECUCION ENTRADAEJECUCION
+        //             INNER JOIN TRANSMICIONWEB ON TRANSMICIONWEB.CODIGOENTRADAEJECUCION = ENTRADAEJECUCION.CODIGOENTRADAEJECUCION 
+        //             INNER JOIN TUPLAEJECUCION ON TUPLAEJECUCION.CODIGOTUPLA = ENTRADAEJECUCION.CODIGOTUPLA
+        //             INNER JOIN PROCESO ON PROCESO.CODIGOPROCESO = TUPLAEJECUCION.CODIGOPROCESO
+        //             INNER JOIN PARADAS ON PARADAS.CODIGOPARADA = TRANSMICIONWEB.CODIGOPARADA
+        //             LEFT  JOIN PARADASEJECUTADAS ON PARADASEJECUTADAS.CODIGOENTRADAEJECUCION = ENTRADAEJECUCION.CODIGOENTRADAEJECUCION
+        //             GROUP BY PROCESO.CODIGOPROCESO
+        //             ORDER BY PROCESO.CODIGOPROCESO;
+        //         ";
+        //     DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
+
+        //     dataTable.Load(DataReaderSIPDATABASE);
+
+        //     string? codigoBPCS;
+        //     decimal cajasProducidas;
+            
+        //     foreach(DataRow row in dataTable.Rows)
+            
+        //     {
+        //         try
+        //         {
+        //             decimal a = diccionario[row["CODIGOPROCESO"].ToString()];
+
+        //             decimal b = Decimal.Parse((row["Tiempo Trabajado"].ToString()));
+
+        //             diccionario[row["CODIGOPROCESO"].ToString()] = diccionario[row["CODIGOPROCESO"].ToString()] / Decimal.Parse((row["Tiempo Trabajado"].ToString()));
+        //         }
+        //         catch (KeyNotFoundException)
+        //         {
+        //             diccionario.Add(row["CODIGOPROCESO"].ToString(),0);
+        //         }
+        //         // if(row["CODIGOPROCESO"].ToString().Equals(codigoBPCS)){
+        //         //     diccionario.Add(row["CODIGOPROCESO"].ToString(), cajasProducidas/Decimal.Parse((row["Tiempo Trabajado"].ToString())));
+        //         //     break;
+        //         // }
+        //     }   
+            
+
+        //     string JSONString = string.Empty;
+        //     JSONString = JsonConvert.SerializeObject(diccionario);
+        //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+        //     return JSONString;
+        // }
+
+        // [HttpGet]
+        // [Route("ProduccionCajaActualPorHoraPropiaBeta")]
+        // public dynamic ProduccionCajaActualPorHoraPropia1turnoBeta(){
+        //     string JSONString = string.Empty;
+        //     JSONString = JsonConvert.SerializeObject(diccionario);
+        //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+        //     return JSONString;
+        // }
+        // [HttpGet]
+        // [Route("ProduccionCajaActualPorHoraPropia")]
+        // public dynamic ProduccionCajaActualPorHoraPropia(){
+        //     Dictionary<string,decimal> diccionario = new Dictionary<string,decimal>();  
+        //     var dataTable = new DataTable();
+        //     // obj.Connection = conexionIngDoc.OpeAbrirConex();
+        //     // obj.CommandText = "SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD ORDER BY OcFecha desc;";
+        //     // objResult = obj.ExecuteReader();
+    
+        //     CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+        //     CommandBPCS.CommandText = @"
+        //             SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS Produccion 
+        //             FROM C20A237W.VENLX835F.ITH ITH 
+        //             WHERE (ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
+        //             GROUP BY ITH.THWRKC, ITH.TPROD 
+        //             ORDER BY ITH.THWRKC";
+        //     DataReaderBPCS = CommandBPCS.ExecuteReader();
+        //     //dataTable.Load(DataReaderBPCS);
+
+        //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
+        //     comandSIPDATABASE.CommandText = @"
+        //             SELECT PROCESO.CODIGOPROCESO, ((AVG(ENTRADAEJECUCION.HORASEJECUTADAS)) - (ISNULL(SUM(CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float))* 24,0))) AS [Tiempo Trabajado]
+        //             FROM SIPDATABASE.dbo.ENTRADAEJECUCION ENTRADAEJECUCION
+        //             INNER JOIN TRANSMICIONWEB ON TRANSMICIONWEB.CODIGOENTRADAEJECUCION = ENTRADAEJECUCION.CODIGOENTRADAEJECUCION 
+        //             INNER JOIN TUPLAEJECUCION ON TUPLAEJECUCION.CODIGOTUPLA = ENTRADAEJECUCION.CODIGOTUPLA
+        //             INNER JOIN PROCESO ON PROCESO.CODIGOPROCESO = TUPLAEJECUCION.CODIGOPROCESO
+        //             INNER JOIN PARADAS ON PARADAS.CODIGOPARADA = TRANSMICIONWEB.CODIGOPARADA
+        //             LEFT  JOIN PARADASEJECUTADAS ON PARADASEJECUTADAS.CODIGOENTRADAEJECUCION = ENTRADAEJECUCION.CODIGOENTRADAEJECUCION
+        //             GROUP BY PROCESO.CODIGOPROCESO
+        //             ORDER BY PROCESO.CODIGOPROCESO;
+        //         ";
+        //     DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
+
+        //     dataTable.Load(DataReaderSIPDATABASE);
+
+        //     string? codigoBPCS;
+        //     decimal cajasProducidas;
+        //     while(DataReaderBPCS.Read()){
+        //         codigoBPCS = DataReaderBPCS.GetValue(0).ToString();
+        //         cajasProducidas = Decimal.Parse(DataReaderBPCS.GetValue(2).ToString());
+
+        //         foreach(DataRow row in dataTable.Rows)
+        //         {
+        //             if(row["CODIGOPROCESO"].ToString().Equals(codigoBPCS)){
+        //                 diccionario.Add(row["CODIGOPROCESO"].ToString(), cajasProducidas/Decimal.Parse((row["Tiempo Trabajado"].ToString())));
+        //                 break;
+        //             }
+        //         }   
+        //     }
+
+        //     string JSONString = string.Empty;
+        //     JSONString = JsonConvert.SerializeObject(diccionario);
+        //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+        //     return JSONString;
+        // }
+
+        // [HttpGet]
+        // [Route("ProduccionCajaActualPropia")]
+        // public dynamic ProduccionCajaActualPropia(){
+        //     var dataTable = new DataTable();
+        //     // obj.Connection = conexionIngDoc.OpeAbrirConex();
+        //     // obj.CommandText = "SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD ORDER BY OcFecha desc;";
+        //     // objResult = obj.ExecuteReader();
+        //     CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+        //     CommandBPCS.CommandText = @"
+        //             SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, Sum(ITH.TQTY) As Cajas
+        //             FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+        //             WHERE (ITH.TPROD = IIM.IPROD) AND ((ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000))
+        //             GROUP BY ITH.THWRKC, ITH.TPROD, IIM.IDESC
+        //             ORDER BY ITH.THWRKC";
+        //     DataReaderBPCS = CommandBPCS.ExecuteReader();
+        //     dataTable.Load(DataReaderBPCS);
+
+        //     string JSONString = string.Empty;
+        //     JSONString = JsonConvert.SerializeObject(dataTable);
+        //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        //     return JSONString;
+        //     }
         
-        [HttpGet]
-        [Route("ProduccionCajaActualEstandar")]
-        public dynamic ProduccionCajaActualEstandar(){
-            Dictionary<string,decimal> diccionario = new Dictionary<string,decimal>(); 
-            //var dataTable = new DataTable();
-            // obj.Connection = conexionIngDoc.OpeAbrirConex();
-            // obj.CommandText = "SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD ORDER BY OcFecha desc;";
-            // objResult = obj.ExecuteReader();
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                    SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, Sum(ITH.TQTY) As Cajas
-                    FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                    WHERE (ITH.TPROD = IIM.IPROD) AND ((ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000))
-                    GROUP BY ITH.THWRKC, ITH.TPROD, IIM.IDESC
-                    ORDER BY ITH.THWRKC";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
+        // [HttpGet]
+        // [Route("ProduccionCajaActualEstandar")]
+        // public dynamic ProduccionCajaActualEstandar(){
+        //     Dictionary<string,decimal> diccionario = new Dictionary<string,decimal>(); 
+        //     //var dataTable = new DataTable();
+        //     // obj.Connection = conexionIngDoc.OpeAbrirConex();
+        //     // obj.CommandText = "SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD ORDER BY OcFecha desc;";
+        //     // objResult = obj.ExecuteReader();
+        //     CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+        //     CommandBPCS.CommandText = @"
+        //             SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, Sum(ITH.TQTY) As Cajas
+        //             FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+        //             WHERE (ITH.TPROD = IIM.IPROD) AND ((ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000))
+        //             GROUP BY ITH.THWRKC, ITH.TPROD, IIM.IDESC
+        //             ORDER BY ITH.THWRKC";
+        //     DataReaderBPCS = CommandBPCS.ExecuteReader();
 
 
-            while(DataReaderBPCS.Read())
-            {
-                CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
-                CommandIngDoc.CommandText = @"
-                        SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha,BD_SeguimientoPlanta.BPCS.IIM.IMFLPF
-                        FROM [DOC_IngI].[dbo].[ObPrConver] 
-                        INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD 
-                        Where dbo.ObPrConver.OcCentro = '"+ DataReaderBPCS.GetValue(0).ToString() +"' AND dbo.ObPrConver.OcCprod = '"+ DataReaderBPCS.GetString(1) +"' ORDER BY OcFecha desc;";
-                DataReaderIngDoc = CommandIngDoc.ExecuteReader();
-                if(DataReaderIngDoc.Read()){
-                    diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetDecimal(3) * Decimal.Parse(DataReaderBPCS.GetValue(3).ToString()));
-                }
-                CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
-                //break;
-            }
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        //     while(DataReaderBPCS.Read())
+        //     {
+        //         CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
+        //         CommandIngDoc.CommandText = @"
+        //                 SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha,BD_SeguimientoPlanta.BPCS.IIM.IMFLPF
+        //                 FROM [DOC_IngI].[dbo].[ObPrConver] 
+        //                 INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD 
+        //                 Where dbo.ObPrConver.OcCentro = '"+ DataReaderBPCS.GetValue(0).ToString() +"' AND dbo.ObPrConver.OcCprod = '"+ DataReaderBPCS.GetString(1) +"' ORDER BY OcFecha desc;";
+        //         DataReaderIngDoc = CommandIngDoc.ExecuteReader();
+        //         if(DataReaderIngDoc.Read()){
+        //             diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetDecimal(3) * Decimal.Parse(DataReaderBPCS.GetValue(3).ToString()));
+        //         }
+        //         CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
+        //         //break;
+        //     }
+        //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
 
 
-            string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(diccionario);
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            return JSONString;
-            }
+        //     string JSONString = string.Empty;
+        //     JSONString = JsonConvert.SerializeObject(diccionario);
+        //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        //     return JSONString;
+        //     }
                 
             [HttpGet]
             [Route("PrimeraParadaPorLinea")]
