@@ -27,77 +27,84 @@ namespace ConsultasSQL.Controllers{
 
         SqlDataReader? DataReaderSIPDATABASE;
         
-        //TODO: Cambiar este metodo
-        [HttpGet]
-        [Route("objePorHoraProductoActualEstandar1turno")]
-        public dynamic objePorHoraProductoActualEstandar1turno(){
-            Dictionary<string,int> diccionario = new Dictionary<string,int>();
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS Produccion 
-                        FROM C20A237W.VENLX835F.ITH ITH 
-                        WHERE (ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") +@") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
-                        GROUP BY ITH.THWRKC, ITH.TPROD 
-                        ORDER BY ITH.THWRKC";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
+        
+        // [HttpGet]
+        // [Route("objePorHoraProductoActualEstandar1turno")]
+        // public dynamic objePorHoraProductoActualEstandar1turno(){
+        //     Dictionary<string,int> diccionario = new Dictionary<string,int>();
+        //     CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+        //     CommandBPCS.CommandText = @"
+        //                 SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS Produccion 
+        //                 FROM C20A237W.VENLX835F.ITH ITH 
+        //                 WHERE (ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") +@") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
+        //                 GROUP BY ITH.THWRKC, ITH.TPROD 
+        //                 ORDER BY ITH.THWRKC";
+        //     DataReaderBPCS = CommandBPCS.ExecuteReader();
             
-            while(DataReaderBPCS.Read())
-            {
-                CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
-                CommandIngDoc.CommandText = @"
-                        SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, dbo.ObPrConver.OcObjEfic  AS [Propia] 
-                        FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD 
-                        where dbo.ObPrConver.OcCentro = '"+ DataReaderBPCS.GetValue(0).ToString() +"' AND dbo.ObPrConver.OcCprod = '"+ DataReaderBPCS.GetString(1) +"' ORDER BY OcFecha desc;";
-                DataReaderIngDoc = CommandIngDoc.ExecuteReader();
-                if(DataReaderIngDoc.Read()){
-                    diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetInt32(3));
-                }
-                CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
-                //break;
-            }
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            //dataTable.Load(objResult);
+        //     while(DataReaderBPCS.Read())
+        //     {
+        //         CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
+        //         CommandIngDoc.CommandText = @"
+        //                 SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, dbo.ObPrConver.OcObjEfic  AS [Propia] 
+        //                 FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD 
+        //                 where dbo.ObPrConver.OcCentro = '"+ DataReaderBPCS.GetValue(0).ToString() +"' AND dbo.ObPrConver.OcCprod = '"+ DataReaderBPCS.GetString(1) +"' ORDER BY OcFecha desc;";
+        //         DataReaderIngDoc = CommandIngDoc.ExecuteReader();
+        //         if(DataReaderIngDoc.Read()){
+        //             diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetInt32(3));
+        //         }
+        //         CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
+        //         //break;
+        //     }
+        //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        //     //dataTable.Load(objResult);
 
+        //     string JSONString = string.Empty;
+        //     JSONString = JsonConvert.SerializeObject(diccionario);
+        //     return JSONString;
+        // }
+
+        [HttpGet]
+        [Route("objePorHoraProductoActualEstandar/{periodo}")]
+        public dynamic objePorHoraProductoActualEstandar(int periodo){
             string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(diccionario);
+            JSONString = JsonConvert.SerializeObject(bpcs.ObjetivoPorHoraSegunProducto(periodo));
             return JSONString;
         }
 
-        //TODO: Cambiar este metodo
-        [HttpGet]
-        [Route("objePorHoraProductoActualPropia")]
-        public dynamic objePorHoraProductoActualPropia(){
-            Dictionary<string,decimal> diccionario = new Dictionary<string,decimal>();
-            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-            CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS Produccion 
-                        FROM C20A237W.VENLX835F.ITH ITH 
-                        WHERE (ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") +@") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
-                        GROUP BY ITH.THWRKC, ITH.TPROD 
-                        ORDER BY ITH.THWRKC";
-            DataReaderBPCS = CommandBPCS.ExecuteReader();
+        // [HttpGet]
+        // [Route("objePorHoraProductoActualPropia")]
+        // public dynamic objePorHoraProductoActualPropia(){
+        //     Dictionary<string,decimal> diccionario = new Dictionary<string,decimal>();
+        //     CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+        //     CommandBPCS.CommandText = @"
+        //                 SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS Produccion 
+        //                 FROM C20A237W.VENLX835F.ITH ITH 
+        //                 WHERE (ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") +@") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
+        //                 GROUP BY ITH.THWRKC, ITH.TPROD 
+        //                 ORDER BY ITH.THWRKC";
+        //     DataReaderBPCS = CommandBPCS.ExecuteReader();
             
-            while(DataReaderBPCS.Read())
-            {
-                CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
-                CommandIngDoc.CommandText = @"
-                        SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] 
-                        FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD 
-                        where dbo.ObPrConver.OcCentro = '"+ DataReaderBPCS.GetValue(0).ToString() +"' AND dbo.ObPrConver.OcCprod = '"+ DataReaderBPCS.GetString(1) +"' ORDER BY OcFecha desc;";
-                DataReaderIngDoc = CommandIngDoc.ExecuteReader();
-                if(DataReaderIngDoc.Read()){
-                    diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetDecimal(3));
-                }
-                CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
-                //break;
-            }
-            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-            //dataTable.Load(objResult);
+        //     while(DataReaderBPCS.Read())
+        //     {
+        //         CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
+        //         CommandIngDoc.CommandText = @"
+        //                 SELECT dbo.ObPrConver.OcCentro,dbo.ObPrConver.OcCprod,dbo.ObPrConver.OcFecha, (dbo.ObPrConver.OcObjEfic/BD_SeguimientoPlanta.BPCS.IIM.IMFLPF) AS [Propia] 
+        //                 FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD 
+        //                 where dbo.ObPrConver.OcCentro = '"+ DataReaderBPCS.GetValue(0).ToString() +"' AND dbo.ObPrConver.OcCprod = '"+ DataReaderBPCS.GetString(1) +"' ORDER BY OcFecha desc;";
+        //         DataReaderIngDoc = CommandIngDoc.ExecuteReader();
+        //         if(DataReaderIngDoc.Read()){
+        //             diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetDecimal(3));
+        //         }
+        //         CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
+        //         //break;
+        //     }
+        //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+        //     //dataTable.Load(objResult);
 
-            string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(diccionario);
-            return JSONString;
-        }
+        //     string JSONString = string.Empty;
+        //     JSONString = JsonConvert.SerializeObject(diccionario);
+        //     return JSONString;
+        // }
 
         [HttpGet]
         [Route("ProduccionCajaActualPropia1turno")]

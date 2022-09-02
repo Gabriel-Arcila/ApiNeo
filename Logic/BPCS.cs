@@ -20,6 +20,49 @@ namespace ConsultasSQL.Logic{
         private Gespline gespline = new Gespline();
         SqlDataReader? DataReaderSIPDATABASE;
 
+        public Dictionary<string,Dictionary<string,int>> ObjetivoPorHoraSegunProducto(int tiempo){
+            Dictionary<string,Dictionary<string,int>> produccion;
+            if(tiempo == 1){
+                produccion = MaquinaProductosProduccionActual1turno();
+            }else if(tiempo == 2){
+                produccion = MaquinaProductosProduccionActual2turnoAntes0am();
+            }else if(tiempo == 3){
+                produccion = MaquinaProductosProduccionActual2turnoDespues0am();
+            }else{
+                return null;
+            }
+            
+            string maquina;
+            string producto;
+            Dictionary<string,int> produccionMaquina;
+
+            foreach (var item in produccion)
+            {
+                maquina = item.Key;
+                produccionMaquina = item.Value;
+                foreach (var productosProduccion in produccionMaquina)
+                {
+                    producto = productosProduccion.Key;
+
+                    CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
+                    CommandIngDoc.CommandText = @"
+                            SELECT dbo.ObPrConver.OcObjEfic  AS [ObjEstandar] 
+                            FROM [DOC_IngI].[dbo].[ObPrConver] INNER JOIN [BD_SeguimientoPlanta].[BPCS].[IIM] ON [DOC_IngI].[dbo].[ObPrConver].OcCprod = [BD_SeguimientoPlanta].[BPCS].[IIM].IPROD 
+                            where dbo.ObPrConver.OcCentro = '"+ maquina +"' AND dbo.ObPrConver.OcCprod = '"+ producto +"' ORDER BY OcFecha desc";
+                    DataReaderIngDoc = CommandIngDoc.ExecuteReader();
+
+                    if(DataReaderIngDoc.Read()){
+                        produccion[maquina][producto] = int.Parse(DataReaderIngDoc.GetValue(0).ToString());
+                    }else{
+                        produccion[maquina][producto] = -1; 
+                    }
+                    CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
+                }
+            }
+
+            return produccion;
+        }
+
         public Dictionary<string,Dictionary<string,int>> MaquinaProductosProduccionActual1turno(){
             var dataTable = new DataTable();
             Dictionary<string,Dictionary<string,int>> producción = new Dictionary<string,Dictionary<string,int>>();
