@@ -406,7 +406,7 @@ namespace ConsultasSQL.Controllers{
                 
             [HttpGet]
             [Route("PrimeraParadaPorLinea")]
-            public dynamic obtennerPrimeraParadaPorLinea(){
+            public dynamic obtenerPrimeraParadaPorLinea(){
                 var dataTable = new DataTable();
                 Dictionary<string,List<DateTime>> diccionario = new Dictionary<string,List<DateTime>>(); 
 
@@ -465,258 +465,258 @@ namespace ConsultasSQL.Controllers{
                 return JSONString;
             }
 
-            [HttpGet]
-            [Route("obtenerCajasPorHorayLinea1turno")]
-            public dynamic obtenerCajasPorHorayLinea1turno(){
-                var dataTable = new DataTable();
-                Dictionary<string, Dictionary<string,List<int>>> nombreProducto = new Dictionary<string,Dictionary<string,List<int>>>(); 
-                Dictionary<string,List<int>> listaProSuma;
+            // [HttpGet]
+            // [Route("obtenerCajasPorHorayLinea1turno")]
+            // public dynamic obtenerCajasPorHorayLinea1turno(){
+            //     var dataTable = new DataTable();
+            //     Dictionary<string, Dictionary<string,List<int>>> nombreProducto = new Dictionary<string,Dictionary<string,List<int>>>(); 
+            //     Dictionary<string,List<int>> listaProSuma;
 
-                comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
-                comandSIPDATABASE.CommandText = @"
-                        SELECT CUADROPNFINAL.CODIGOPROCESO
-                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
-                        WHERE PARADASEJECUTADAS.FECHAYHORAPARADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '05:50:00' AND PARADASEJECUTADAS.FECHAYHORAPARADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '18:00:00'
-                        GROUP BY CUADROPNFINAL.CODIGOPROCESO
-                        ORDER BY CUADROPNFINAL.CODIGOPROCESO;
-                ";  
-                DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
-                dataTable.Load(DataReaderSIPDATABASE);
+            //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
+            //     comandSIPDATABASE.CommandText = @"
+            //             SELECT CUADROPNFINAL.CODIGOPROCESO
+            //             FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
+            //             WHERE PARADASEJECUTADAS.FECHAYHORAPARADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '05:50:00' AND PARADASEJECUTADAS.FECHAYHORAPARADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '18:00:00'
+            //             GROUP BY CUADROPNFINAL.CODIGOPROCESO
+            //             ORDER BY CUADROPNFINAL.CODIGOPROCESO;
+            //     ";  
+            //     DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
+            //     dataTable.Load(DataReaderSIPDATABASE);
                 
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    listaProSuma = new Dictionary<string,List<int>>();
-                    nombreProducto.Add(row["CODIGOPROCESO"].ToString(),listaProSuma);
-                }
+            //     foreach (DataRow row in dataTable.Rows)
+            //     {
+            //         listaProSuma = new Dictionary<string,List<int>>();
+            //         nombreProducto.Add(row["CODIGOPROCESO"].ToString(),listaProSuma);
+            //     }
 
-                comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
                 
-                CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-                CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
-                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>=" + DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<=180000))
-                        ORDER BY ITH.THWRKC";
-                DataReaderBPCS = CommandBPCS.ExecuteReader();
-                dataTable = new DataTable();
-                dataTable.Load(DataReaderBPCS);
+            //     CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            //     CommandBPCS.CommandText = @"
+            //             SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
+            //             FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+            //             WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>=" + DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<=180000))
+            //             ORDER BY ITH.THWRKC";
+            //     DataReaderBPCS = CommandBPCS.ExecuteReader();
+            //     dataTable = new DataTable();
+            //     dataTable.Load(DataReaderBPCS);
                 
-                var a = DateTime.Now.ToString("yyyyMMdd");
+            //     var a = DateTime.Now.ToString("yyyyMMdd");
 
-                List<int> itemCaja;
-                Dictionary<string,List<int>> item;
-                int hora;
-                List<int> cajas;
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    try
-                    {
-                        item = nombreProducto[row["THWRKC"].ToString()];
-                        if (row["THWRKC"].ToString() == "441208")
-                        {
-                            int p = 1;
-                        }
-                    }
-                    catch (KeyNotFoundException)
-                    {
-                        continue;
-                    }
+            //     List<int> itemCaja;
+            //     Dictionary<string,List<int>> item;
+            //     int hora;
+            //     List<int> cajas;
+            //     foreach (DataRow row in dataTable.Rows)
+            //     {
+            //         try
+            //         {
+            //             item = nombreProducto[row["THWRKC"].ToString()];
+            //             if (row["THWRKC"].ToString() == "441208")
+            //             {
+            //                 int p = 1;
+            //             }
+            //         }
+            //         catch (KeyNotFoundException)
+            //         {
+            //             continue;
+            //         }
 
                     
                     
-                    if(item.ContainsKey(row["TPROD"].ToString()))
-                    {
-                        cajas = item[row["TPROD"].ToString()];
-                    }
-                    else
-                    {
-                        itemCaja = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
-                        item.Add(row["TPROD"].ToString(),itemCaja);
-                        cajas = item[row["TPROD"].ToString()];
-                    }
+            //         if(item.ContainsKey(row["TPROD"].ToString()))
+            //         {
+            //             cajas = item[row["TPROD"].ToString()];
+            //         }
+            //         else
+            //         {
+            //             itemCaja = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
+            //             item.Add(row["TPROD"].ToString(),itemCaja);
+            //             cajas = item[row["TPROD"].ToString()];
+            //         }
 
-                    hora = int.Parse(row["THTIME"].ToString());
-                        if (hora >= 60000 && hora < 70000)
-                        {
-                            cajas[0] = cajas[0] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 80000){
-                            cajas[1] = cajas[1] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 90000){
-                            cajas[2] = cajas[2] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 100000){
-                            cajas[3] = cajas[3] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 110000){
-                            cajas[4] = cajas[4] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 120000){
-                            cajas[5] = cajas[5] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 130000){
-                            cajas[6] = cajas[6] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 140000){
-                            cajas[7] = cajas[7] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 150000){
-                            cajas[8] = cajas[8] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 160000){
-                            cajas[9] = cajas[9] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 170000){
-                            cajas[10] = cajas[10] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora <= 180000){
-                            cajas[11] = cajas[11] + int.Parse(row["TQTY"].ToString());
-                        }
+            //         hora = int.Parse(row["THTIME"].ToString());
+            //             if (hora >= 60000 && hora < 70000)
+            //             {
+            //                 cajas[0] = cajas[0] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 80000){
+            //                 cajas[1] = cajas[1] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 90000){
+            //                 cajas[2] = cajas[2] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 100000){
+            //                 cajas[3] = cajas[3] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 110000){
+            //                 cajas[4] = cajas[4] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 120000){
+            //                 cajas[5] = cajas[5] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 130000){
+            //                 cajas[6] = cajas[6] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 140000){
+            //                 cajas[7] = cajas[7] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 150000){
+            //                 cajas[8] = cajas[8] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 160000){
+            //                 cajas[9] = cajas[9] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 170000){
+            //                 cajas[10] = cajas[10] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora <= 180000){
+            //                 cajas[11] = cajas[11] + int.Parse(row["TQTY"].ToString());
+            //             }
 
-                    nombreProducto[row["THWRKC"].ToString()] = item;
-                }
+            //         nombreProducto[row["THWRKC"].ToString()] = item;
+            //     }
 
-                comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
-                CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-                string JSONString = string.Empty;
-                JSONString = JsonConvert.SerializeObject(nombreProducto);
-                return JSONString;
-            }
+            //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+            //     string JSONString = string.Empty;
+            //     JSONString = JsonConvert.SerializeObject(nombreProducto);
+            //     return JSONString;
+            // }
 
-            [HttpGet]
-            [Route("obtenerCajasPorHorayLinea2turno")]
-            public dynamic obtenerCajasPorHorayLinea2turno(){
-                var dataTable = new DataTable();
-                Dictionary<string, Dictionary<string,List<int>>> nombreProducto = new Dictionary<string,Dictionary<string,List<int>>>(); 
-                Dictionary<string,List<int>> listaProSuma;
+            // [HttpGet]
+            // [Route("obtenerCajasPorHorayLinea2turno")]
+            // public dynamic obtenerCajasPorHorayLinea2turno(){
+            //     var dataTable = new DataTable();
+            //     Dictionary<string, Dictionary<string,List<int>>> nombreProducto = new Dictionary<string,Dictionary<string,List<int>>>(); 
+            //     Dictionary<string,List<int>> listaProSuma;
 
-                comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
-                comandSIPDATABASE.CommandText = @"
-                        SELECT CUADROPNFINAL.CODIGOPROCESO
-                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
-                        WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),-1) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '6:00:00'
-                        GROUP BY CUADROPNFINAL.CODIGOPROCESO
-                        ORDER BY CUADROPNFINAL.CODIGOPROCESO;
-                ";  
-                DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
-                dataTable.Load(DataReaderSIPDATABASE);
+            //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
+            //     comandSIPDATABASE.CommandText = @"
+            //             SELECT CUADROPNFINAL.CODIGOPROCESO
+            //             FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
+            //             WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),-1) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '6:00:00'
+            //             GROUP BY CUADROPNFINAL.CODIGOPROCESO
+            //             ORDER BY CUADROPNFINAL.CODIGOPROCESO;
+            //     ";  
+            //     DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
+            //     dataTable.Load(DataReaderSIPDATABASE);
                 
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    listaProSuma = new Dictionary<string,List<int>>();
-                    nombreProducto.Add(row["CODIGOPROCESO"].ToString(),listaProSuma);
-                }
+            //     foreach (DataRow row in dataTable.Rows)
+            //     {
+            //         listaProSuma = new Dictionary<string,List<int>>();
+            //         nombreProducto.Add(row["CODIGOPROCESO"].ToString(),listaProSuma);
+            //     }
 
-                comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
                 
-                CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-                CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
-                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.AddDays(-1).ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME < 240000))
-                        ORDER BY ITH.THWRKC";
-                DataReaderBPCS = CommandBPCS.ExecuteReader();
-                dataTable = new DataTable();
-                dataTable.Load(DataReaderBPCS);
+            //     CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            //     CommandBPCS.CommandText = @"
+            //             SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
+            //             FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+            //             WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.AddDays(-1).ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME < 240000))
+            //             ORDER BY ITH.THWRKC";
+            //     DataReaderBPCS = CommandBPCS.ExecuteReader();
+            //     dataTable = new DataTable();
+            //     dataTable.Load(DataReaderBPCS);
 
 
-                List<int> itemCaja;
-                Dictionary<string,List<int>> item;
-                int hora;
-                List<int> cajas;
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    try
-                    {
-                        item = nombreProducto[row["THWRKC"].ToString()];
-                    }
-                    catch (KeyNotFoundException)
-                    {
-                        continue;
-                    }   
+            //     List<int> itemCaja;
+            //     Dictionary<string,List<int>> item;
+            //     int hora;
+            //     List<int> cajas;
+            //     foreach (DataRow row in dataTable.Rows)
+            //     {
+            //         try
+            //         {
+            //             item = nombreProducto[row["THWRKC"].ToString()];
+            //         }
+            //         catch (KeyNotFoundException)
+            //         {
+            //             continue;
+            //         }   
 
                     
                     
-                    if(item.ContainsKey(row["TPROD"].ToString()))
-                    {
-                        cajas = item[row["TPROD"].ToString()];
-                    }
-                    else
-                    {
-                        itemCaja = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
-                        item.Add(row["TPROD"].ToString(),itemCaja);
-                        cajas = item[row["TPROD"].ToString()];
-                    }
+            //         if(item.ContainsKey(row["TPROD"].ToString()))
+            //         {
+            //             cajas = item[row["TPROD"].ToString()];
+            //         }
+            //         else
+            //         {
+            //             itemCaja = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
+            //             item.Add(row["TPROD"].ToString(),itemCaja);
+            //             cajas = item[row["TPROD"].ToString()];
+            //         }
 
-                    hora = int.Parse(row["THTIME"].ToString());
-                        if (hora >= 180000 && hora < 190000)
-                        {
-                            cajas[0] = cajas[0] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 200000){
-                            cajas[1] = cajas[1] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 210000){
-                            cajas[2] = cajas[2] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 220000){
-                            cajas[3] = cajas[3] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 230000){
-                            cajas[4] = cajas[4] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 240000){
-                            cajas[5] = cajas[5] + int.Parse(row["TQTY"].ToString());
-                        }
+            //         hora = int.Parse(row["THTIME"].ToString());
+            //             if (hora >= 180000 && hora < 190000)
+            //             {
+            //                 cajas[0] = cajas[0] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 200000){
+            //                 cajas[1] = cajas[1] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 210000){
+            //                 cajas[2] = cajas[2] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 220000){
+            //                 cajas[3] = cajas[3] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 230000){
+            //                 cajas[4] = cajas[4] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 240000){
+            //                 cajas[5] = cajas[5] + int.Parse(row["TQTY"].ToString());
+            //             }
 
-                    nombreProducto[row["THWRKC"].ToString()] = item;
-                }
-                CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+            //         nombreProducto[row["THWRKC"].ToString()] = item;
+            //     }
+            //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
 
-                CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
-                CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
-                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME >= 0 And ITH.THTIME < 60000))
-                        ORDER BY ITH.THWRKC";
-                DataReaderBPCS = CommandBPCS.ExecuteReader();
-                dataTable = new DataTable();
-                dataTable.Load(DataReaderBPCS);
+            //     CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            //     CommandBPCS.CommandText = @"
+            //             SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
+            //             FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+            //             WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME >= 0 And ITH.THTIME < 60000))
+            //             ORDER BY ITH.THWRKC";
+            //     DataReaderBPCS = CommandBPCS.ExecuteReader();
+            //     dataTable = new DataTable();
+            //     dataTable.Load(DataReaderBPCS);
 
                 
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    try
-                    {
-                        item = nombreProducto[row["THWRKC"].ToString()];
-                    }
-                    catch (KeyNotFoundException)
-                    {
-                        break;
-                    }   
+            //     foreach (DataRow row in dataTable.Rows)
+            //     {
+            //         try
+            //         {
+            //             item = nombreProducto[row["THWRKC"].ToString()];
+            //         }
+            //         catch (KeyNotFoundException)
+            //         {
+            //             break;
+            //         }   
 
                     
                     
-                    if(item.ContainsKey(row["TPROD"].ToString()))
-                    {
-                        cajas = item[row["TPROD"].ToString()];
-                    }
-                    else
-                    {
-                        itemCaja = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
-                        item.Add(row["TPROD"].ToString(),itemCaja);
-                        cajas = item[row["TPROD"].ToString()];
-                    }
+            //         if(item.ContainsKey(row["TPROD"].ToString()))
+            //         {
+            //             cajas = item[row["TPROD"].ToString()];
+            //         }
+            //         else
+            //         {
+            //             itemCaja = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
+            //             item.Add(row["TPROD"].ToString(),itemCaja);
+            //             cajas = item[row["TPROD"].ToString()];
+            //         }
 
-                    hora = int.Parse(row["THTIME"].ToString());
-                        if(hora > 0 && hora < 10000){
-                            cajas[6] = cajas[6] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 20000){
-                            cajas[7] = cajas[7] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 30000){
-                            cajas[8] = cajas[8] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 40000){
-                            cajas[9] = cajas[9] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora < 50000){
-                            cajas[10] = cajas[10] + int.Parse(row["TQTY"].ToString());
-                        }else if(hora <= 60000){
-                            cajas[11] = cajas[11] + int.Parse(row["TQTY"].ToString());
-                        }
+            //         hora = int.Parse(row["THTIME"].ToString());
+            //             if(hora > 0 && hora < 10000){
+            //                 cajas[6] = cajas[6] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 20000){
+            //                 cajas[7] = cajas[7] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 30000){
+            //                 cajas[8] = cajas[8] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 40000){
+            //                 cajas[9] = cajas[9] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora < 50000){
+            //                 cajas[10] = cajas[10] + int.Parse(row["TQTY"].ToString());
+            //             }else if(hora <= 60000){
+            //                 cajas[11] = cajas[11] + int.Parse(row["TQTY"].ToString());
+            //             }
 
-                    nombreProducto[row["THWRKC"].ToString()] = item;
-                }
+            //         nombreProducto[row["THWRKC"].ToString()] = item;
+            //     }
 
-                CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-                string JSONString = string.Empty;
-                comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
-                JSONString = JsonConvert.SerializeObject(nombreProducto);
-                return JSONString;
-            }
+            //     CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+            //     string JSONString = string.Empty;
+            //     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            //     JSONString = JsonConvert.SerializeObject(nombreProducto);
+            //     return JSONString;
+            // }
         //private SqlClient obj = new SqlClient();
         //private OleDbCommand obj = new OleDbCommand();
 
