@@ -78,7 +78,7 @@ namespace ConsultasSQL.Logic{
             CommandBPCS.CommandText = @"
                         SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS PRODUCCION 
                         FROM C20A237W.VENLX835F.ITH ITH 
-                        WHERE (ITH.TTYPE='R') AND (ITH.TTDTE>="+ DateTime.Now.ToString("yyyyMMdd") +@") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
+                        WHERE (ITH.TTYPE='R') AND (ITH.TTDTE ="+ DateTime.Now.ToString("yyyyMMdd") +@") AND (ITH.TWHS='PT ') AND (ITH.THTIME>=60000 And ITH.THTIME<180000) 
                         GROUP BY ITH.THWRKC, ITH.TPROD 
                         ORDER BY ITH.THWRKC";
             DataReaderBPCS = CommandBPCS.ExecuteReader();
@@ -115,7 +115,7 @@ namespace ConsultasSQL.Logic{
             CommandBPCS.CommandText = @"
                         SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS PRODUCCION
                         FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=0 And ITH.THTIME<60000))
+                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE ='"+ DateTime.Now.ToString("yyyyMMdd") + @"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=0 And ITH.THTIME<60000))
                         GROUP BY ITH.THWRKC, ITH.TPROD
                         ORDER BY ITH.THWRKC
                         ";
@@ -141,7 +141,7 @@ namespace ConsultasSQL.Logic{
             CommandBPCS.CommandText = @"
                         SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS PRODUCCION
                         FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.AddDays(-1).ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME<=235959))
+                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE ='"+ DateTime.Now.ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME< 235959))
                         GROUP BY ITH.THWRKC, ITH.TPROD
                         ";
             DataReaderBPCS = CommandBPCS.ExecuteReader();
@@ -191,7 +191,7 @@ namespace ConsultasSQL.Logic{
             CommandBPCS.CommandText = @"
                         SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY)
                         FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
-                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME<=235959))
+                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE ='"+ DateTime.Now.AddDays(+1).ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME<=235959))
                         GROUP BY ITH.THWRKC, ITH.TPROD
                         ";
             DataReaderBPCS = CommandBPCS.ExecuteReader();
@@ -290,5 +290,221 @@ namespace ConsultasSQL.Logic{
             }
             return ProduccionPorHora;
         }
+
+        public Dictionary<string, Dictionary<string,List<int>>> obtenerLaProduccionActual1turno(){
+            List<string> maquinas = gespline.MaquinasGesplineActivos1turno();
+            Dictionary<string, Dictionary<string,List<int>>> producionMaquinaPorHora = new Dictionary<string,Dictionary<string,List<int>>>(); 
+            Dictionary<string,List<int>> listaProSuma;
+            List<int> listaSuma;
+            var dataTable = new DataTable();
+
+            foreach (var item in maquinas)
+            {
+                listaProSuma = new Dictionary<string,List<int>>();
+                producionMaquinaPorHora.Add(item,listaProSuma);
+            }
+
+            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            CommandBPCS.CommandText = @"
+                        SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
+                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE =" + DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TWHS='PT ') AND (ITH.THTIME >=60000 And ITH.THTIME<=180000))
+                        ORDER BY ITH.THWRKC";
+            DataReaderBPCS = CommandBPCS.ExecuteReader();
+            dataTable.Load(DataReaderBPCS);
+
+            string maquina;
+            string producto;
+            int hora;
+            foreach (DataRow row in dataTable.Rows)
+            {
+                maquina = row["THWRKC"].ToString();
+                if(producionMaquinaPorHora.ContainsKey(maquina)){
+                    listaProSuma = producionMaquinaPorHora[maquina];
+                    producto = row["TPROD"].ToString();
+                    if(listaProSuma.ContainsKey(producto)){
+                        listaSuma = listaProSuma[producto];
+                    }else{
+                        listaSuma = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
+                        listaProSuma.Add(producto,listaSuma);
+                    }
+
+                    hora = int.Parse(row["THTIME"].ToString());
+                    if (hora >= 60000 && hora < 70000){
+                        listaSuma[0] = listaSuma[0] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 80000){
+                        listaSuma[1] = listaSuma[1] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 90000){
+                        listaSuma[2] = listaSuma[2] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 100000){
+                        listaSuma[3] = listaSuma[3] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 110000){
+                        listaSuma[4] = listaSuma[4] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 120000){
+                        listaSuma[5] = listaSuma[5] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 130000){
+                        listaSuma[6] = listaSuma[6] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 140000){
+                        listaSuma[7] = listaSuma[7] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 150000){
+                        listaSuma[8] = listaSuma[8] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 160000){
+                        listaSuma[9] = listaSuma[9] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 170000){
+                        listaSuma[10] = listaSuma[10] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora <= 180000){
+                        listaSuma[11] = listaSuma[11] + int.Parse(row["TQTY"].ToString());
+                    }
+                }else{
+                    continue;
+                }
+            }
+            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+            return producionMaquinaPorHora;
+        }
+
+        private DataTable obtenerLaProduccionActual2turnoAntes0am(bool band){
+            Dictionary<string, Dictionary<string,List<int>>> producionMaquinaPorHora = new Dictionary<string,Dictionary<string,List<int>>>();
+            var dataTable = new DataTable();
+            //* si band es true estamos a las 6pm a 11:59 am
+            if(band){
+                CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+                CommandBPCS.CommandText = @"
+                        SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
+                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.AddDays(+1).ToString("yyyyMMdd") + @"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME < 240000))
+                        ORDER BY ITH.THWRKC";
+                DataReaderBPCS = CommandBPCS.ExecuteReader();
+            //* si band es falso estamos de 11:59 am hasta 6 am
+            }else{
+                CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+                CommandBPCS.CommandText = @"
+                        SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
+                        FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+                        WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") + @"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME < 240000))
+                        ORDER BY ITH.THWRKC";
+                DataReaderBPCS = CommandBPCS.ExecuteReader();
+            }
+            dataTable.Load(DataReaderBPCS);
+            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+            return dataTable;
+        }
+
+        private DataTable obtenerLaProduccionActual2turnoDespues0am(){
+            Dictionary<string, Dictionary<string,List<int>>> producionMaquinaPorHora = new Dictionary<string,Dictionary<string,List<int>>>();
+            var dataTable = new DataTable();
+
+            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            CommandBPCS.CommandText = @"
+                SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC, ITH.TQTY, ITH.THTIME
+                FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+                WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE>='"+ DateTime.Now.ToString("yyyyMMdd") + @"') AND (ITH.TWHS='PT ') AND (ITH.THTIME >= 0 And ITH.THTIME < 60000))
+                ORDER BY ITH.THWRKC";
+            DataReaderBPCS = CommandBPCS.ExecuteReader();
+            dataTable.Load(DataReaderBPCS);
+            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+            return dataTable;
+        }
+        public Dictionary<string, Dictionary<string,List<int>>> obtenerLaProduccionActual2turno(bool band){
+            Dictionary<string, Dictionary<string,List<int>>> producionMaquinaPorHora = new Dictionary<string,Dictionary<string,List<int>>>(); 
+            Dictionary<string,List<int>> listaProSuma;
+            List<int> listaSuma;
+            var dataTable = new DataTable();
+            var dataTable2 = new DataTable();
+
+
+            List<string> maquinas = new List<string>();
+            //* si band es true estamos a las 6pm a 11:59 am
+            if(band){
+                maquinas = gespline.MaquinasGesplineActivos2turnoAntes0am();
+                dataTable = this.obtenerLaProduccionActual2turnoAntes0am(band);
+            //* si band es true estamos a las 11:59 pm a 6 am
+            }else{
+                maquinas = gespline.MaquinasGesplineActivos2turnoDespues0am();
+                dataTable = this.obtenerLaProduccionActual2turnoAntes0am(band);
+                dataTable2 = this.obtenerLaProduccionActual2turnoDespues0am();
+            }
+
+            foreach (var item in maquinas)
+            {
+                listaProSuma = new Dictionary<string,List<int>>();
+                producionMaquinaPorHora.Add(item,listaProSuma);
+            }
+
+
+            string maquina;
+            string producto;
+            int hora;
+            foreach (DataRow row in dataTable.Rows)
+            {
+                maquina = row["THWRKC"].ToString();
+                if(producionMaquinaPorHora.ContainsKey(maquina)){
+                    listaProSuma = producionMaquinaPorHora[maquina];
+                    producto = row["TPROD"].ToString();
+                    if(listaProSuma.ContainsKey(producto)){
+                        listaSuma = listaProSuma[producto];
+                    }else{
+                        listaSuma = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
+                        listaProSuma.Add(producto,listaSuma);
+                    }
+
+                    hora = int.Parse(row["THTIME"].ToString());
+                    if (hora >= 180000 && hora < 190000){
+                        listaSuma[0] = listaSuma[0] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 200000){
+                        listaSuma[1] = listaSuma[1] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 210000){
+                        listaSuma[2] = listaSuma[2] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 220000){
+                        listaSuma[3] = listaSuma[3] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 230000){
+                        listaSuma[4] = listaSuma[4] + int.Parse(row["TQTY"].ToString());
+                    }else if(hora < 240000){
+                        listaSuma[5] = listaSuma[5] + int.Parse(row["TQTY"].ToString());
+                    }
+                }else{
+                    continue;
+                }
+            }
+            if(!band){
+                foreach (DataRow row in dataTable2.Rows)
+                {
+                    maquina = row["THWRKC"].ToString();
+                    if(producionMaquinaPorHora.ContainsKey(maquina)){
+                        listaProSuma = producionMaquinaPorHora[maquina];
+                        producto = row["TPROD"].ToString();
+                        if(listaProSuma.ContainsKey(producto)){
+                            listaSuma = listaProSuma[producto];
+                        }else{
+                            listaSuma = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
+                            listaProSuma.Add(producto,listaSuma);
+                        }
+
+                        hora = int.Parse(row["THTIME"].ToString());
+                        if(hora > 0 && hora < 10000){
+                            listaSuma[6] = listaSuma[6] + int.Parse(row["TQTY"].ToString());
+                        }else if(hora < 20000){
+                            listaSuma[7] = listaSuma[7] + int.Parse(row["TQTY"].ToString());
+                        }else if(hora < 30000){
+                            listaSuma[8] = listaSuma[8] + int.Parse(row["TQTY"].ToString());
+                        }else if(hora < 40000){
+                            listaSuma[9] = listaSuma[9] + int.Parse(row["TQTY"].ToString());
+                        }else if(hora < 50000){
+                            listaSuma[10] = listaSuma[10] + int.Parse(row["TQTY"].ToString());
+                        }else if(hora <= 60000){
+                            listaSuma[11] = listaSuma[11] + int.Parse(row["TQTY"].ToString());
+                        }
+                    }else{
+                        continue;
+                    }
+                }
+            }
+            return producionMaquinaPorHora;
+        }
+
+        // public void obtenerCajasProduciodasPorHora1Turno(){
+
+
+        // }
     }
 }

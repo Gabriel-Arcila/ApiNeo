@@ -168,7 +168,7 @@ namespace ConsultasSQL.Controllers{
         }
 
         [HttpGet]
-        [Route("ProduccionCajaActualPorHoraEstanadar/{tiempo}")]
+        [Route("ProduccionCajaActualPorHoraEstandar/{tiempo}")]
         public dynamic ProduccionCajaActualPorHoraEstanadar(int tiempo){
             string JSONString = string.Empty;
             Dictionary<string,Dictionary<string,int>> produccion = new Dictionary<string,Dictionary<string,int>>();
@@ -444,6 +444,24 @@ namespace ConsultasSQL.Controllers{
 
                 string JSONString = string.Empty;
                 JSONString = JsonConvert.SerializeObject(diccionario);
+                return JSONString;
+            }
+
+            [HttpGet]
+            [Route("obtenerCajasPorHora/{tiempo}")]
+            public dynamic obtenerCajasProducidasPorHora(int tiempo){
+                string JSONString = string.Empty;
+                Dictionary<string, Dictionary<string, List<int>>> produccion = new Dictionary<string, Dictionary<string, List<int>>>();
+                if(tiempo == 1){
+                    produccion = bpcs.obtenerLaProduccionActual1turno();
+                }else if(tiempo == 2){
+                    produccion = bpcs.obtenerLaProduccionActual2turno(true);
+                }else if(tiempo == 3){
+                    produccion = bpcs.obtenerLaProduccionActual2turno(false);
+                }else{
+                    return JSONString;
+                }
+                JSONString = JsonConvert.SerializeObject(produccion);
                 return JSONString;
             }
 

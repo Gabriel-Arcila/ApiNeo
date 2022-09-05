@@ -216,7 +216,12 @@ namespace ConsultasSQL.Logic{
             
             for (int i = 0; i < llaves.Count(); i++)
             {
-                tiempoEjecutado[llaves[i]] = tiempoEjecutado[llaves[i]] - tiempoPerdido[llaves[i]];
+                if(tiempoPerdido.ContainsKey(llaves[i])){
+                    tiempoEjecutado[llaves[i]] = tiempoEjecutado[llaves[i]] - tiempoPerdido[llaves[i]];
+                }else{
+                    tiempoEjecutado[llaves[i]] = tiempoEjecutado[llaves[i]];
+                }
+
             }
             return tiempoEjecutado;
         }
