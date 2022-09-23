@@ -90,7 +90,7 @@ namespace ConsultasSQL.Logic{
                 if (producción.ContainsKey(row["THWRKC"].ToString()))
                 {
                     temporal = producción[row["THWRKC"].ToString()];
-                    var a = row["TPROD"].ToString();
+                    //var a = row["TPROD"].ToString();
                     temporal.Add(row["TPROD"].ToString(), (int) float.Parse(row["PRODUCCION"].ToString()));
                     producción[row["THWRKC"].ToString()] = temporal;
                 }else{
@@ -385,9 +385,30 @@ namespace ConsultasSQL.Logic{
                         ORDER BY ITH.THWRKC";
                 DataReaderBPCS = CommandBPCS.ExecuteReader();
             }
-            dataTable.Load(DataReaderBPCS);
+            dataTable.Load(DataReaderBPCS); 
             CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
             return dataTable;
+        }
+
+        public Dictionary<string, string> obtenerLosProductosActuales(){
+            var dataTable = new DataTable();
+            Dictionary<string, string> productos = new Dictionary<string, string>();
+
+            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            CommandBPCS.CommandText = @"
+                SELECT ITH.TPROD, IIM.IDESC, Sum(ITH.TQTY)
+                FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+                WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTDTE="+ DateTime.Now.ToString("yyyyMMdd") + @") AND (ITH.TTYPE='R') AND (ITH.TWHS='PT'))
+                GROUP BY ITH.TPROD, IIM.IDESC";
+            DataReaderBPCS = CommandBPCS.ExecuteReader();
+            dataTable.Load(DataReaderBPCS);
+            foreach (DataRow row in dataTable.Rows)
+            {
+                productos.Add(row["TPROD"].ToString(),row["IDESC"].ToString());
+            }
+            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+
+            return productos;
         }
 
         private DataTable obtenerLaProduccionActual2turnoDespues0am(){

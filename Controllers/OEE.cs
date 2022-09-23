@@ -71,6 +71,7 @@ namespace ConsultasSQL.Controllers{
             return JSONString;
         }
 
+
         // [HttpGet]
         // [Route("objePorHoraProductoActualPropia")]
         // public dynamic objePorHoraProductoActualPropia(){
@@ -464,6 +465,14 @@ namespace ConsultasSQL.Controllers{
                 JSONString = JsonConvert.SerializeObject(produccion);
                 return JSONString;
             }
+
+        [HttpGet]
+        [Route("obtenerProductosActuales")]
+        public dynamic obtenerProductosActuales(){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(bpcs.obtenerLosProductosActuales());
+            return JSONString;
+        }
 
             // [HttpGet]
             // [Route("obtenerCajasPorHorayLinea1turno")]
