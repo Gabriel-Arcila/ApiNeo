@@ -410,7 +410,7 @@ namespace ConsultasSQL.Controllers{
             public dynamic obtenerPrimeraParadaPorLinea(){
                 var dataTable = new DataTable();
                 Dictionary<string,List<DateTime>> diccionario = new Dictionary<string,List<DateTime>>(); 
-
+  
                 comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
                 comandSIPDATABASE.CommandText = @"
                         SELECT  CUADROPNFINAL.CODIGOPROCESO
@@ -449,10 +449,11 @@ namespace ConsultasSQL.Controllers{
             }
 
             [HttpGet]
-            [Route("obtenerCajasPorHora/{tiempo}")]
-            public dynamic obtenerCajasProducidasPorHora(int tiempo){
+            [Route("obtenerCajasPorHoraPropia/{tiempo}")]
+            public dynamic obtenerCajasPorHoraPropia(int tiempo){
                 string JSONString = string.Empty;
                 Dictionary<string, Dictionary<string, List<int>>> produccion = new Dictionary<string, Dictionary<string, List<int>>>();
+                
                 if(tiempo == 1){
                     produccion = bpcs.obtenerLaProduccionActual1turno();
                 }else if(tiempo == 2){
@@ -463,6 +464,25 @@ namespace ConsultasSQL.Controllers{
                     return JSONString;
                 }
                 JSONString = JsonConvert.SerializeObject(produccion);
+                return JSONString;
+            }
+
+            [HttpGet]
+            [Route("obtenerCajasPorHoraEstandar/{tiempo}")]
+            public dynamic obtenerCajasPorHoraEstandar(int tiempo){
+                string JSONString = string.Empty;
+                Dictionary<string, Dictionary<string, List<int>>> produccion = new Dictionary<string, Dictionary<string, List<int>>>();
+                
+                if(tiempo == 1){
+                    produccion = bpcs.obtenerLaProduccionActual1turno();
+                }else if(tiempo == 2){
+                    produccion = bpcs.obtenerLaProduccionActual2turno(true);
+                }else if(tiempo == 3){
+                    produccion = bpcs.obtenerLaProduccionActual2turno(false);
+                }else{
+                    return JSONString;
+                }
+                JSONString = JsonConvert.SerializeObject(this.bpcs.conversionTotalAEstandarPormaquinaYproducto(produccion));
                 return JSONString;
             }
 
@@ -728,6 +748,5 @@ namespace ConsultasSQL.Controllers{
             // }
         //private SqlClient obj = new SqlClient();
         //private OleDbCommand obj = new OleDbCommand();
-
     }
 }

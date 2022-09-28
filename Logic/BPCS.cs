@@ -259,6 +259,54 @@ namespace ConsultasSQL.Logic{
             }
             return produccion;
         }
+
+        //TODO: hacer funcion de convertir produccion por hora a estandar
+        public Dictionary<string,Dictionary<string,List<int>>> conversionTotalAEstandarPormaquinaYproducto(Dictionary<string,Dictionary<string,List<int>>> produccion){
+            Dictionary<string,List<int>> productoHoras;
+            List<string> productosLlaves;
+            List<int> listaProduccionActual;
+            int produccionHora;
+            List<string> maquinasllaves = new List<string>(produccion.Keys);
+            for (int i = 0; i < produccion.Count(); i++)
+            {
+                productoHoras = produccion[maquinasllaves[i]];
+                productosLlaves = new List<string>(productoHoras.Keys);
+                for (int j = 0; j < productosLlaves.Count(); j++)
+                {   
+                    listaProduccionActual = productoHoras[productosLlaves[j]];
+
+                    CommandIngDoc.Connection = conexionIngDoc.OpeAbrirConex();
+                    CommandIngDoc.CommandText = @"
+                            SELECT  IIM.IMFLPF
+                            FROM  [BD_SeguimientoPlanta].[BPCS].[IIM]                        
+                            Where IPROD  = '" + productosLlaves[j] + "';";
+                    DataReaderIngDoc = CommandIngDoc.ExecuteReader();
+
+                    if(DataReaderIngDoc.Read()){
+                        for (int k = 0; k < listaProduccionActual.Count(); k++)
+                        {
+                            produccionHora = listaProduccionActual[k];
+                            produccionHora = (int) Math.Round(produccionHora * float.Parse(DataReaderIngDoc.GetValue(0).ToString()));
+                            listaProduccionActual[k] = produccionHora;
+                        }
+                        //diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetDecimal(3) * Decimal.Parse(DataReaderBPCS.GetValue(3).ToString()));
+                    }else{
+                        for (int k = 0; k < listaProduccionActual.Count(); k++)
+                        {
+                            produccionHora = listaProduccionActual[k];
+                            produccionHora = -1;
+                            listaProduccionActual[k] = produccionHora;
+                        }
+                    }
+                    CommandIngDoc.Connection = conexionIngDoc.OpeCerrarConex();
+                    productoHoras[productosLlaves[j]] = listaProduccionActual;
+
+                }
+                produccion[maquinasllaves[i]] = productoHoras;
+            }
+            return produccion;
+        }
+
         public Dictionary<string, int> ProduccionActualPorMaquinaPorHora(Dictionary<string,Dictionary<string,int>> produccion,int Periodotiempo){
             //Dictionary<string, Dictionary<string, int>> produccion = MaquinaProductosProduccionActual1turno();
             int suma = 0;
