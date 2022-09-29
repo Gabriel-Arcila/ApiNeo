@@ -333,7 +333,11 @@ namespace ConsultasSQL.Logic{
                 {
                     suma += item.Value;
                 }
-                ProduccionPorHora.Add(maquinasllaves[i],(int) Math.Round(suma/tiempo[maquinasllaves[i]]));
+                try{
+                    ProduccionPorHora.Add(maquinasllaves[i],(int) Math.Round(suma/tiempo[maquinasllaves[i]]));
+                }catch{
+
+                }
                 suma = 0;
             }
             return ProduccionPorHora;
