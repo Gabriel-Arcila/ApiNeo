@@ -463,6 +463,28 @@ namespace ConsultasSQL.Logic{
             return productos;
         }
 
+        public Dictionary<string, string> obtenerLosProductosActualesDeLinea(string centroCosto){
+            var dataTable = new DataTable();
+            Dictionary<string, string> productos = new Dictionary<string, string>();
+
+            CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
+            CommandBPCS.CommandText = @"
+                SELECT ITH.THWRKC, ITH.TPROD, IIM.IDESC
+                FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
+                WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTDTE='"+ DateTime.Now.ToString("yyyyMMdd") + @"') AND (ITH.TTYPE='R') AND (ITH.THWRKC='"+ centroCosto + @"'))
+                GROUP BY ITH.THWRKC, ITH.TPROD, IIM.IDESC";
+                // AND (ITH.TWHS='PT') 
+            DataReaderBPCS = CommandBPCS.ExecuteReader();
+            dataTable.Load(DataReaderBPCS);
+            foreach (DataRow row in dataTable.Rows)
+            {
+                productos.Add(row["TPROD"].ToString(),row["IDESC"].ToString());
+            }
+            CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
+
+            return productos;
+        }
+
         private DataTable obtenerLaProduccionActual2turnoDespues0am(){
             Dictionary<string, Dictionary<string,List<int>>> producionMaquinaPorHora = new Dictionary<string,Dictionary<string,List<int>>>();
             var dataTable = new DataTable();

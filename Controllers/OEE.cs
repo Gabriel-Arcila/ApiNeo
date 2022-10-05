@@ -494,6 +494,14 @@ namespace ConsultasSQL.Controllers{
             return JSONString;
         }
 
+        [HttpGet]
+        [Route("obtenerProductosActualesDeLaLiena/{centroCosto}")]
+        public dynamic obtenerProductosActualesDeLaLiena(string centroCosto){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(bpcs.obtenerLosProductosActualesDeLinea(centroCosto));
+            return JSONString;
+        }
+
             // [HttpGet]
             // [Route("obtenerCajasPorHorayLinea1turno")]
             // public dynamic obtenerCajasPorHorayLinea1turno(){
