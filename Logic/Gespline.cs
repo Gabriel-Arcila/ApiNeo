@@ -278,6 +278,24 @@ namespace ConsultasSQL.Logic{
             return datos;
         }
 
+        public List<List<string>> obtenerParadasActuales1turnoConFiltro(string centroCosto,string cadenaIdRegistros){
+            List<List<string>> datos = this.obtenerParadasActuales1turno(centroCosto);
+            string[] cadenas = cadenaIdRegistros.Replace("[","").Replace("]","").Replace("\"","").Split(",");
+            int remover;
+
+            for (int i = 0; i < cadenas.Length; i++)
+            {
+                remover = datos[0].FindIndex(d => d.Contains(cadenas[i]));
+                datos[0].RemoveAt(remover);
+                datos[1].RemoveAt(remover);
+                datos[2].RemoveAt(remover);
+                datos[3].RemoveAt(remover);
+            }
+            return datos;
+        }
+
+
+
         // public Dictionary<string,float> ttiempoPerdidoActual2turnoDespues0am(){
 
         // }

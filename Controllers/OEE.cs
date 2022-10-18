@@ -512,6 +512,14 @@ namespace ConsultasSQL.Controllers{
             return JSONString;
         }
 
+        [HttpGet]
+        [Route("obtenerParadasActuales1turnoPorLinea/{centroCosto}/{cadenas}")]
+        public dynamic obtenerParadasActuales1turnoPorLineaPorFiltroYaRegistradosenLibroNove(string centroCosto,string cadenas){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActuales1turnoConFiltro(centroCosto,cadenas));
+            return JSONString;
+        }
+
             // [HttpGet]
             // [Route("obtenerCajasPorHorayLinea1turno")]
             // public dynamic obtenerCajasPorHorayLinea1turno(){
