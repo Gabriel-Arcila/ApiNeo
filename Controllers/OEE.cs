@@ -25,6 +25,8 @@ namespace ConsultasSQL.Controllers{
 
         private BPCS bpcs = new BPCS();
 
+        private Gespline gespline = new Gespline();
+
         SqlDataReader? DataReaderSIPDATABASE;
         
         
@@ -499,6 +501,14 @@ namespace ConsultasSQL.Controllers{
         public dynamic obtenerProductosActualesDeLaLiena(string centroCosto){
             string JSONString = string.Empty;
             JSONString = JsonConvert.SerializeObject(bpcs.obtenerLosProductosActualesDeLinea(centroCosto));
+            return JSONString;
+        }
+
+        [HttpGet]
+        [Route("obtenerParadasActuales1turnoPorLinea/{centroCosto}")]
+        public dynamic obtenerParadasActuales1turnoPorLinea(string centroCosto){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActuales1turno(centroCosto));
             return JSONString;
         }
 

@@ -244,6 +244,40 @@ namespace ConsultasSQL.Logic{
             return tiempoEjecutado;
         }
 
+        public List<List<string>> obtenerParadasActuales1turno(string centroCosto){
+            var dataTable = new DataTable();
+            List<string> codigos = new List<string>();
+            List<string> parada = new List<string>();
+            List<string> tiempo = new List<string>();
+            List<string> idRegistro = new List<string>();
+            List<List<string>> datos = new List<List<string>>(4);
+
+
+            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
+            comandSIPDATABASE.CommandText = @"
+                SELECT PARADASEJECUTADAS.CODIGOREGISTRSO,GRUPOSDEPARADAS.CODIGOGRUPOPARADA, PARADAS.NOMBREPARADA ,((CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float)))* 1440 AS [Tiempo Perdido]
+                FROM SIPDATABASE.dbo.PARADASEJECUTADAS 
+                INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
+                INNER JOIN SIPDATABASE.dbo.PARADAS ON PARADASEJECUTADAS.CODIGOPARADA  = PARADAS.CODIGOPARADA
+                INNER JOIN dbo.GRUPOSDEPARADAS ON dbo.GRUPOSDEPARADAS.CODIGOGRUPOPARADA = PARADAS.CODIGOGRUPOPARADA
+                WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '05:50:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '18:00:00' AND DATENAME(HOUR, CUADROPNFINAL.FECHAENTRADA) < 17 AND CUADROPNFINAL.CODIGOPROCESO = '441105'
+                ORDER BY  [Tiempo Perdido] DESC;";
+            DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
+            dataTable.Load(DataReaderSIPDATABASE);
+            comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            foreach (DataRow row in dataTable.Rows){
+                idRegistro.Add(row["CODIGOREGISTRSO"].ToString());
+                codigos.Add(row["CODIGOGRUPOPARADA"].ToString());
+                parada.Add(row["NOMBREPARADA"].ToString());
+                tiempo.Add(row["Tiempo Perdido"].ToString());
+            }
+            datos.Add(idRegistro);
+            datos.Add(codigos);
+            datos.Add(parada);
+            datos.Add(tiempo);
+            return datos;
+        }
+
         // public Dictionary<string,float> ttiempoPerdidoActual2turnoDespues0am(){
 
         // }

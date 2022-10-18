@@ -597,9 +597,6 @@ namespace ConsultasSQL.Logic{
             return producionMaquinaPorHora;
         }
 
-        // public void obtenerCajasProduciodasPorHora1Turno(){
-
-
-        // }
-    }
+        
+    }   
 }
