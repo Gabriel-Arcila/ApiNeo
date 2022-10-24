@@ -280,7 +280,7 @@ namespace ConsultasSQL.Logic{
 
         public List<List<string>> obtenerParadasActuales1turnoConFiltro(string centroCosto,string cadenaIdRegistros){
             List<List<string>> datos = this.obtenerParadasActuales1turno(centroCosto);
-            string[] cadenas = cadenaIdRegistros.Replace("[","").Replace("]","").Replace("\"","").Split(",");
+            string[] cadenas = cadenaIdRegistros.Replace("[","").Replace("]","").Split(",");
             int remover;
 
             for (int i = 0; i < cadenas.Length; i++)

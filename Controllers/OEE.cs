@@ -8,6 +8,7 @@ using ConsultasSQL.Logic;
 namespace ConsultasSQL.Controllers{
     [ApiController]
     [Route("OEE")]
+    [Route("Ing")]
 
     public class IngDocController : ControllerBase
     {
