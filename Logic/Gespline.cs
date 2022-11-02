@@ -354,9 +354,8 @@ namespace ConsultasSQL.Logic{
                 return this.obtenerParadasActuales2turnoDespuesDeLas0am(centroCosto);
             }
         }
-
-        public List<List<string>> obtenerParadasActuales1turnoConFiltro(string centroCosto,string cadenaIdRegistros){
-            List<List<string>> datos = this.obtenerParadasActuales1turno(centroCosto);
+        public List<List<string>> obtenerParadasActualesConFiltro(List<List<string>> datos,string cadenaIdRegistros){
+            //List<List<string>> datos = this.obtenerParadasActuales1turno(centroCosto);
             string[] cadenas = cadenaIdRegistros.Replace("[","").Replace("]","").Split(",");
             int remover;
 
@@ -370,7 +369,7 @@ namespace ConsultasSQL.Logic{
             }
             return datos;
         }
-
+        
 
 
         // public Dictionary<string,float> ttiempoPerdidoActual2turnoDespues0am(){

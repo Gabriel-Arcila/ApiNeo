@@ -489,37 +489,23 @@ namespace ConsultasSQL.Controllers{
                 return JSONString;
             }
 
-        [HttpGet]
-        [Route("obtenerProductosActuales")]
-        public dynamic obtenerProductosActuales(){
-            string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(bpcs.obtenerLosProductosActuales());
-            return JSONString;
-        }
+            [HttpGet]
+            [Route("obtenerProductosActuales")]
+            public dynamic obtenerProductosActuales(){
+                string JSONString = string.Empty;
+                JSONString = JsonConvert.SerializeObject(bpcs.obtenerLosProductosActuales());
+                return JSONString;
+            }
 
-        [HttpGet]
-        [Route("obtenerProductosActualesDeLaLiena/{centroCosto}")]
-        public dynamic obtenerProductosActualesDeLaLiena(string centroCosto){
-            string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(bpcs.obtenerLosProductosActualesDeLinea(centroCosto));
-            return JSONString;
-        }
+            [HttpGet]
+            [Route("obtenerProductosActualesDeLaLiena/{centroCosto}")]
+            public dynamic obtenerProductosActualesDeLaLiena(string centroCosto){
+                string JSONString = string.Empty;
+                JSONString = JsonConvert.SerializeObject(bpcs.obtenerLosProductosActualesDeLinea(centroCosto));
+                return JSONString;
+            }
 
-        [HttpGet]
-        [Route("obtenerParadasActuales1turnoPorLinea/{centroCosto}")]
-        public dynamic obtenerParadasActuales1turnoPorLinea(string centroCosto){
-            string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActuales1turno(centroCosto));
-            return JSONString;
-        }
-
-        [HttpGet]
-        [Route("obtenerParadasActuales1turnoPorLinea/{centroCosto}/{cadenas}")]
-        public dynamic obtenerParadasActuales1turnoPorLineaPorFiltroYaRegistradosenLibroNove(string centroCosto,string cadenas){
-            string JSONString = string.Empty;
-            JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActuales1turnoConFiltro(centroCosto,cadenas));
-            return JSONString;
-        }
+        
 
             // [HttpGet]
             // [Route("obtenerCajasPorHorayLinea1turno")]
