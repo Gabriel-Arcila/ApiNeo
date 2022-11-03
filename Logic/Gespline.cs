@@ -209,6 +209,7 @@ namespace ConsultasSQL.Logic{
             }
             return tiempo;
         }
+        
         public Dictionary<string,float> tiempoTrabajadoActual1turno(){
             Dictionary<string,float> tiempoEjecutado = tiempoEjecutadoActual1();
             Dictionary<string,float> tiempoPerdido = tiempoPerdidoActual1turno();
@@ -387,6 +388,8 @@ namespace ConsultasSQL.Logic{
                 datos[1].RemoveAt(remover);
                 datos[2].RemoveAt(remover);
                 datos[3].RemoveAt(remover);
+                datos[4].RemoveAt(remover);
+                datos[5].RemoveAt(remover);
             }
             return datos;
         }
