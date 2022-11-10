@@ -25,7 +25,7 @@ namespace ConsultasSQL.Logic{
                     FROM PLST.SPI.MAESTRO_TRABAJADOR 
                     INNER JOIN PLST.SPI.DEPARTAMENTOS ON DEPARTAMENTOS.CODDPT = MAESTRO_TRABAJADOR.DPTFIC
                     INNER JOIN PLST.SPI.CARGOS ON MAESTRO_TRABAJADOR.CGOFIC = CARGOS.CODCGO
-                    WHERE CARGOS.CIACGO = '10' AND MAESTRO_TRABAJADOR.CODFIC LIKE '%" + ficha + @"%'
+                    WHERE  CARGOS.CIACGO = MAESTRO_TRABAJADOR.[CIAFIC] AND MAESTRO_TRABAJADOR.CODFIC LIKE '%" + ficha + @"%'
             "; 
             DataReaderUsuario = comandUsuario.ExecuteReader();
             dataTable.Load(DataReaderUsuario);

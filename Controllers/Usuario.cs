@@ -20,7 +20,9 @@ namespace ConsultasSQL.Controllers{
         public dynamic objePorHoraProductoActualEstandar(string ficha){
             string JSONString = string.Empty;
             ficha = ficha.ToUpper();
-            JSONString = JsonConvert.SerializeObject(usuarioLogic.ObtenerUsuarioPorFicha(ficha));
+            Usuario usuario;
+            usuario = usuarioLogic.ObtenerUsuarioPorFicha(ficha);
+            JSONString = JsonConvert.SerializeObject(usuario);
             return JSONString;
         }
     }
