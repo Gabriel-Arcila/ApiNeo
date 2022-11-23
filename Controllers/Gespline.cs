@@ -26,6 +26,30 @@ namespace ConsultasSQL.Controllers{
         }
 
         [HttpGet]
+        [Route("ObtenerParadasGesplienActualesAgrupados1turno/{CentroCosto}")]
+        public dynamic ObtenerParadasGesplienActualesAgrupados1truno(string CentroCosto){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActuales1turnoAgrupados(CentroCosto));
+            return JSONString;
+        }
+
+        [HttpGet]
+        [Route("ObtenerParadasGesplienActualesAgrupados2turnoAntesDeLas0am/{CentroCosto}")]
+        public dynamic ObtenerParadasGesplienActualesAgrupados2turnoAntesDeLas0am(string CentroCosto){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActuales2turnoAntesDeLas0amAgupados(CentroCosto));
+            return JSONString;
+        }
+
+        [HttpGet]
+        [Route("ObtenerParadasGesplienActualesAgrupados2turnoDespuesDeLas0am/{CentroCosto}")]
+        public dynamic ObtenerParadasGesplienActualesAgrupados2turnoDespuesDeLas0am(string CentroCosto){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActuales2turnoDespuesDeLas0amAgrupados(CentroCosto));
+            return JSONString;
+        }
+
+        [HttpGet]
         [Route("ObtenerParadasSegundoTurnoPorMaquina/{CentroCosto}/{cadenas}")]
         public dynamic ObtenerParadasSegundoTurnoPorMaquina(string CentroCosto,string cadenas){
             string JSONString = string.Empty;
@@ -48,6 +72,8 @@ namespace ConsultasSQL.Controllers{
             JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActualesConFiltro(gespline.obtenerParadasActuales1turno(centroCosto),cadenas));
             return JSONString;
         }
+
+        
 
     }
 }
