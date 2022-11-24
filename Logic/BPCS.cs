@@ -371,7 +371,10 @@ namespace ConsultasSQL.Logic{
             foreach (DataRow row in dataTable.Rows)
             {
                 maquina = row["THWRKC"].ToString();
-                if(producionMaquinaPorHora.ContainsKey(maquina)){
+                if(!producionMaquinaPorHora.ContainsKey(maquina)){
+                    listaProSuma = new Dictionary<string,List<int>>();
+                    producionMaquinaPorHora.Add(maquina,listaProSuma);
+                }
                     listaProSuma = producionMaquinaPorHora[maquina];
                     producto = row["TPROD"].ToString();
                     if(listaProSuma.ContainsKey(producto)){
@@ -407,9 +410,6 @@ namespace ConsultasSQL.Logic{
                     }else if(hora <= 180000){
                         listaSuma[11] = listaSuma[11] + int.Parse(row["TQTY"].ToString());
                     }
-                }else{
-                    continue;
-                }
             }
             CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
             return producionMaquinaPorHora;
@@ -533,7 +533,10 @@ namespace ConsultasSQL.Logic{
             foreach (DataRow row in dataTable.Rows)
             {
                 maquina = row["THWRKC"].ToString();
-                if(producionMaquinaPorHora.ContainsKey(maquina)){
+                if(!producionMaquinaPorHora.ContainsKey(maquina)){
+                    listaProSuma = new Dictionary<string,List<int>>();
+                    producionMaquinaPorHora.Add(maquina,listaProSuma);
+                }
                     listaProSuma = producionMaquinaPorHora[maquina];
                     producto = row["TPROD"].ToString();
                     if(listaProSuma.ContainsKey(producto)){
@@ -557,9 +560,7 @@ namespace ConsultasSQL.Logic{
                     }else if(hora < 240000){
                         listaSuma[5] = listaSuma[5] + int.Parse(row["TQTY"].ToString());
                     }
-                }else{
-                    continue;
-                }
+                
             }
             if(!band){
                 foreach (DataRow row in dataTable2.Rows)
