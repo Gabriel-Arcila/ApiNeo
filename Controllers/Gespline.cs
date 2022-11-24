@@ -72,8 +72,5 @@ namespace ConsultasSQL.Controllers{
             JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActualesConFiltro(gespline.obtenerParadasActuales1turno(centroCosto),cadenas));
             return JSONString;
         }
-
-        
-
     }
 }

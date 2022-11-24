@@ -251,7 +251,7 @@ namespace ConsultasSQL.Logic{
             List<string> parada = new List<string>();
             List<string> tiempo = new List<string>();
             List<string> idRegistro = new List<string>();
-            List<string> idArea = new List<string>();
+            List<string> idArea = new List<string>();   
             List<string> Area = new List<string>();
             List<List<string>> datos = new List<List<string>>(4);
 
@@ -293,31 +293,34 @@ namespace ConsultasSQL.Logic{
             List<string> NOMBREPARADA = new List<string>();
             List<string> parteNombre = new List<string>();
             List<string> TiempoPerdido = new List<string>();
+            List<string> codigoGrupoParada = new List<string>();
             List<List<string>> datos = new List<List<string>>(5);
 
 
             comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
             comandSIPDATABASE.CommandText = @"
-                SELECT PARADAS.CODIGOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre ,sum((CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float)))* 1440 AS [Tiempo Perdido]
+                SELECT PARADAS.CODIGOPARADA,GRUPOSDEPARADAS.CODIGOGRUPOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre ,sum((CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float)))* 1440 AS [Tiempo Perdido]
                 FROM SIPDATABASE.dbo.PARADASEJECUTADAS 
                 INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
                 INNER JOIN SIPDATABASE.dbo.PARADAS ON PARADASEJECUTADAS.CODIGOPARADA  = PARADAS.CODIGOPARADA
                 INNER JOIN dbo.GRUPOSDEPARADAS ON dbo.GRUPOSDEPARADAS.CODIGOGRUPOPARADA = PARADAS.CODIGOGRUPOPARADA
                 INNER JOIN dbo.Partes ON dbo.Partes.Codigo = UPPER(SUBSTRING ([dbo].[PARADASEJECUTADAS].[CODIGOPARADA],0,3))
                 WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '05:50:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '18:00:00' AND DATENAME(HOUR, CUADROPNFINAL.FECHAENTRADA) < 17 AND REVERSE(SUBSTRING(REVERSE([PARADAS].[CODIGOPARADA]),1,4)) <> '0114' AND CUADROPNFINAL.CODIGOPROCESO = "+ centroCosto +@"
-                GROUP BY PARADAS.CODIGOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre
+                GROUP BY PARADAS.CODIGOPARADA,GRUPOSDEPARADAS.CODIGOGRUPOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre
                 ORDER BY  [Tiempo Perdido] DESC;";
             DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
             dataTable.Load(DataReaderSIPDATABASE);
             comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
             foreach (DataRow row in dataTable.Rows){
                 CODIGOPARADA.Add(row["CODIGOPARADA"].ToString());
+                codigoGrupoParada.Add(row["CODIGOGRUPOPARADA"].ToString());
                 CodigoParte.Add(row["Codigo"].ToString());
                 NOMBREPARADA.Add(row["NOMBREPARADA"].ToString());
                 parteNombre.Add(row["parteNombre"].ToString());
                 TiempoPerdido.Add(row["Tiempo Perdido"].ToString());
             }
             datos.Add(CODIGOPARADA);
+            datos.Add(codigoGrupoParada);
             datos.Add(CodigoParte);
             datos.Add(NOMBREPARADA);
             datos.Add(parteNombre);
@@ -373,31 +376,34 @@ namespace ConsultasSQL.Logic{
             List<string> NOMBREPARADA = new List<string>();
             List<string> parteNombre = new List<string>();
             List<string> TiempoPerdido = new List<string>();
+            List<string> codigoGrupoParada = new List<string>();
             List<List<string>> datos = new List<List<string>>(4);
 
     
             comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
             comandSIPDATABASE.CommandText = @"
-                SELECT PARADAS.CODIGOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre ,sum((CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float)))* 1440 AS [Tiempo Perdido]
+                SELECT PARADAS.CODIGOPARADA,GRUPOSDEPARADAS.CODIGOGRUPOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre ,sum((CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float)))* 1440 AS [Tiempo Perdido]
 				FROM SIPDATABASE.dbo.PARADASEJECUTADAS 
                 INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
                 INNER JOIN SIPDATABASE.dbo.PARADAS ON PARADASEJECUTADAS.CODIGOPARADA  = PARADAS.CODIGOPARADA
                 INNER JOIN dbo.GRUPOSDEPARADAS ON dbo.GRUPOSDEPARADAS.CODIGOGRUPOPARADA = PARADAS.CODIGOGRUPOPARADA
                 INNER JOIN dbo.Partes ON dbo.Partes.Codigo = UPPER(SUBSTRING ([dbo].[PARADASEJECUTADAS].[CODIGOPARADA],0,3))
                 WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '18:00:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),1) + '06:00:00' AND DATENAME(HOUR, CUADROPNFINAL.FECHAENTRADA) >= 17 AND REVERSE(SUBSTRING(REVERSE([PARADAS].[CODIGOPARADA]),1,4)) <> '0114' AND CUADROPNFINAL.CODIGOPROCESO = "+ centroCosto + @"
-                GROUP BY PARADAS.CODIGOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre
+                GROUP BY PARADAS.CODIGOPARADA,GRUPOSDEPARADAS.CODIGOGRUPOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre
 				ORDER BY  [Tiempo Perdido] DESC;";
             DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
             dataTable.Load(DataReaderSIPDATABASE);
             comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
             foreach (DataRow row in dataTable.Rows){
                 CODIGOPARADA.Add(row["CODIGOPARADA"].ToString());
+                codigoGrupoParada.Add(row["CODIGOGRUPOPARADA"].ToString());
                 CodigoParte.Add(row["Codigo"].ToString());
                 NOMBREPARADA.Add(row["NOMBREPARADA"].ToString());
                 parteNombre.Add(row["parteNombre"].ToString());
                 TiempoPerdido.Add(row["Tiempo Perdido"].ToString());
             }
             datos.Add(CODIGOPARADA);
+            datos.Add(codigoGrupoParada);
             datos.Add(CodigoParte);
             datos.Add(NOMBREPARADA);
             datos.Add(parteNombre);
@@ -412,31 +418,34 @@ namespace ConsultasSQL.Logic{
             List<string> NOMBREPARADA = new List<string>();
             List<string> parteNombre = new List<string>();
             List<string> TiempoPerdido = new List<string>();
+            List<string> codigoGrupoParada = new List<string>();
             List<List<string>> datos = new List<List<string>>(4);
 
 
             comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
             comandSIPDATABASE.CommandText = @"
-                SELECT PARADAS.CODIGOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre ,sum((CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float)))* 1440 AS [Tiempo Perdido]
+                SELECT PARADAS.CODIGOPARADA,GRUPOSDEPARADAS.CODIGOGRUPOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre ,sum((CAST(PARADASEJECUTADAS.TIMESPAN as float) - CAST(PARADASEJECUTADAS.FECHAYHORAPARADA as float)))* 1440 AS [Tiempo Perdido]
                 FROM SIPDATABASE.dbo.PARADASEJECUTADAS 
                 INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
                 INNER JOIN SIPDATABASE.dbo.PARADAS ON PARADASEJECUTADAS.CODIGOPARADA  = PARADAS.CODIGOPARADA
                 INNER JOIN dbo.GRUPOSDEPARADAS ON dbo.GRUPOSDEPARADAS.CODIGOGRUPOPARADA = PARADAS.CODIGOGRUPOPARADA
                 INNER JOIN dbo.Partes ON dbo.Partes.Codigo = UPPER(SUBSTRING ([dbo].[PARADASEJECUTADAS].[CODIGOPARADA],0,3))
 				WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),-1) + '18:00:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '06:00:00' AND DATENAME(HOUR, CUADROPNFINAL.FECHAENTRADA) >= 17 AND REVERSE(SUBSTRING(REVERSE([PARADAS].[CODIGOPARADA]),1,4)) <> '0114' AND CUADROPNFINAL.CODIGOPROCESO = "+ centroCosto + @"
-                GROUP BY PARADAS.CODIGOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre
+                GROUP BY PARADAS.CODIGOPARADA,GRUPOSDEPARADAS.CODIGOGRUPOPARADA,Partes.Codigo,PARADAS.NOMBREPARADA,Partes.parteNombre
 				ORDER BY  [Tiempo Perdido] DESC;";
             DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
             dataTable.Load(DataReaderSIPDATABASE);
             comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
             foreach (DataRow row in dataTable.Rows){
                 CODIGOPARADA.Add(row["CODIGOPARADA"].ToString());
+                codigoGrupoParada.Add(row["CODIGOGRUPOPARADA"].ToString());
                 CodigoParte.Add(row["Codigo"].ToString());
                 NOMBREPARADA.Add(row["NOMBREPARADA"].ToString());
                 parteNombre.Add(row["parteNombre"].ToString());
                 TiempoPerdido.Add(row["Tiempo Perdido"].ToString());
             }
             datos.Add(CODIGOPARADA);
+            datos.Add(codigoGrupoParada);
             datos.Add(CodigoParte);
             datos.Add(NOMBREPARADA);
             datos.Add(parteNombre);
