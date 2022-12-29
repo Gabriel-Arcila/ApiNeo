@@ -175,7 +175,7 @@ namespace ConsultasSQL.Logic{
             return producción;
         }
 
-         public Dictionary<string,Dictionary<string,int>> MaquinaProductosProduccionActual2turnoAntes0am(){
+        public Dictionary<string,Dictionary<string,int>> MaquinaProductosProduccionActual2turnoAntes0am(){
             var dataTable = new DataTable();
             Dictionary<string,Dictionary<string,int>> producción = new Dictionary<string,Dictionary<string,int>>();
             List<string> maquinas = gespline.MaquinasGesplineActivos2turnoAntes0am();
@@ -263,9 +263,11 @@ namespace ConsultasSQL.Logic{
         //TODO: hacer funcion de convertir produccion por hora a estandar
         public Dictionary<string,Dictionary<string,List<int>>> conversionTotalAEstandarPormaquinaYproducto(Dictionary<string,Dictionary<string,List<int>>> produccion){
             Dictionary<string,List<int>> productoHoras;
+            Dictionary<string,List<int>> total = new Dictionary<string,List<int>>();
             List<string> productosLlaves;
             List<int> listaProduccionActual;
             int produccionHora;
+            total.Add("Total",new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0,0});
             List<string> maquinasllaves = new List<string>(produccion.Keys);
             for (int i = 0; i < produccion.Count(); i++)
             {
@@ -288,6 +290,7 @@ namespace ConsultasSQL.Logic{
                             produccionHora = listaProduccionActual[k];
                             produccionHora = (int) Math.Round(produccionHora * float.Parse(DataReaderIngDoc.GetValue(0).ToString()));
                             listaProduccionActual[k] = produccionHora;
+                            total["Total"][k] = total["Total"][k] + produccionHora;
                         }
                         //diccionario.Add(DataReaderIngDoc.GetValue(0).ToString(),DataReaderIngDoc.GetDecimal(3) * Decimal.Parse(DataReaderBPCS.GetValue(3).ToString()));
                     }else{
@@ -304,6 +307,7 @@ namespace ConsultasSQL.Logic{
                 }
                 produccion[maquinasllaves[i]] = productoHoras;
             }
+            produccion.Add("Total",total);
             return produccion;
         }
 
@@ -380,7 +384,7 @@ namespace ConsultasSQL.Logic{
                     if(listaProSuma.ContainsKey(producto)){
                         listaSuma = listaProSuma[producto];
                     }else{
-                        listaSuma = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
+                        listaSuma = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0,0};
                         listaProSuma.Add(producto,listaSuma);
                     }
 
@@ -410,6 +414,7 @@ namespace ConsultasSQL.Logic{
                     }else if(hora <= 180000){
                         listaSuma[11] = listaSuma[11] + int.Parse(row["TQTY"].ToString());
                     }
+                    listaSuma[12] = listaSuma[12] + int.Parse(row["TQTY"].ToString());
             }
             CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
             return producionMaquinaPorHora;
@@ -445,7 +450,6 @@ namespace ConsultasSQL.Logic{
         public Dictionary<string, string> obtenerLosProductosActuales(){
             var dataTable = new DataTable();
             Dictionary<string, string> productos = new Dictionary<string, string>();
-
             CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
             CommandBPCS.CommandText = @"
                 SELECT ITH.TPROD, IIM.IDESC, Sum(ITH.TQTY)
@@ -459,7 +463,7 @@ namespace ConsultasSQL.Logic{
                 productos.Add(row["TPROD"].ToString(),row["IDESC"].ToString());
             }
             CommandBPCS.Connection = conexionBPCS.CodCerrarConex();
-
+            
             return productos;
         }
 
@@ -542,7 +546,7 @@ namespace ConsultasSQL.Logic{
                     if(listaProSuma.ContainsKey(producto)){
                         listaSuma = listaProSuma[producto];
                     }else{
-                        listaSuma = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
+                        listaSuma = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0,0};
                         listaProSuma.Add(producto,listaSuma);
                     }
 
@@ -560,6 +564,7 @@ namespace ConsultasSQL.Logic{
                     }else if(hora < 240000){
                         listaSuma[5] = listaSuma[5] + int.Parse(row["TQTY"].ToString());
                     }
+                    listaSuma[12] = listaSuma[12] + int.Parse(row["TQTY"].ToString());
                 
             }
             if(!band){
@@ -572,7 +577,7 @@ namespace ConsultasSQL.Logic{
                         if(listaProSuma.ContainsKey(producto)){
                             listaSuma = listaProSuma[producto];
                         }else{
-                            listaSuma = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0};
+                            listaSuma = new List<int>() {0,0,0,0,0,0,0,0,0,0,0,0,0};
                             listaProSuma.Add(producto,listaSuma);
                         }
 
@@ -590,6 +595,7 @@ namespace ConsultasSQL.Logic{
                         }else if(hora <= 60000){
                             listaSuma[11] = listaSuma[11] + int.Parse(row["TQTY"].ToString());
                         }
+                        listaSuma[12] = listaSuma[12] + int.Parse(row["TQTY"].ToString());
                     }else{
                         continue;
                     }
