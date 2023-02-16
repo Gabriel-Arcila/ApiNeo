@@ -16,23 +16,24 @@ namespace ConsultasSQL.Logic{
         public List<string> ObtenerGrupoYTurno(){
             int hora = DateTime.Now.Hour;
             string turno = "";
+            string fecha = "";
             List<string> datos = new List<string>(2);
             if(hora >= 6 && hora < 18){
                 turno = "1";
-                var a = DateTime.Now.ToString("yyyyMMdd");
+                fecha  = DateTime.Now.ToString("yyyyMMdd");
             }else if(hora >= 0 && hora < 6){
                 turno = "2";
-                var a = DateTime.Now.AddDays(-1).ToString("yyyyMMdd").;
+                fecha = DateTime.Now.AddDays(-1).ToString("yyyyMMdd");
             }else{
                 turno = "2";
-                var a = DateTime.Now.ToString("yyyyMMdd");
+                fecha = DateTime.Now.ToString("yyyyMMdd");
             }
             var dataTable = new DataTable();
             comandTurno.Connection = conexionTurno.OpeAbrirConex();
             comandTurno.CommandText = @"
                 SELECT RCTurno,RCGrupo
                 FROM dbo.RotaCalida
-                WHERE RCFecha = '" + a + "' AND RCTurno = '"+ turno + "';";
+                WHERE RCFecha = '" + fecha + "' AND RCTurno = '"+ turno + "';";
             DataReaderTurno = comandTurno.ExecuteReader();
             dataTable.Load(DataReaderTurno);
             foreach (DataRow row in dataTable.Rows)
