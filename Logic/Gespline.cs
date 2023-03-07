@@ -37,6 +37,7 @@ namespace ConsultasSQL.Logic{
             comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
             return maquina;
         }
+        
         public List<string> MaquinasGesplineActivos2turnoDespues0am(){
             List<string> maquina = new List<string>();
             var dataTable = new DataTable();

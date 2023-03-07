@@ -13,8 +13,6 @@ namespace ConsultasSQL.Controllers{
 
     public class GesplineController : ControllerBase
     {
-        private DbSIPDATABASE conexionSIPDATABASE = new DbSIPDATABASE();
-        private SqlCommand comandSIPDATABASE = new SqlCommand();
         private Gespline gespline = new Gespline();
 
         [HttpGet]
