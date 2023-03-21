@@ -400,9 +400,9 @@ namespace ConsultasSQL.Logic{
             foreach (DataRow row in dataTable.Rows){
                 CODIGOPARADA.Add(row["CODIGOPARADA"].ToString());
                 codigoGrupoParada.Add(row["CODIGOGRUPOPARADA"].ToString());
-                CodigoParte.Add(row["Codigo"].ToString());
+                CodigoParte.Add(row["ACodGes"].ToString());
                 NOMBREPARADA.Add(row["NOMBREPARADA"].ToString());
-                parteNombre.Add(row["parteNombre"].ToString());
+                parteNombre.Add(row["AParte"].ToString());
                 TiempoPerdido.Add(row["Tiempo Perdido"].ToString());
             }
             datos.Add(CODIGOPARADA);
@@ -444,7 +444,7 @@ namespace ConsultasSQL.Logic{
             foreach (DataRow row in dataTable.Rows){
                 CODIGOPARADA.Add(row["CODIGOPARADA"].ToString());
                 codigoGrupoParada.Add(row["CODIGOGRUPOPARADA"].ToString());
-                CodigoParte.Add(row["Codigo"].ToString());
+                CodigoParte.Add(row["ACodGes"].ToString());
                 NOMBREPARADA.Add(row["NOMBREPARADA"].ToString());
                 parteNombre.Add(row["AParte"].ToString());
                 TiempoPerdido.Add(row["Tiempo Perdido"].ToString());
