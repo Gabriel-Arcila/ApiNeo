@@ -33,7 +33,7 @@ namespace ConsultasSQL.Controllers{
         }
 
         [HttpGet]
-        [Route("obtenerProductoConOrdenDeFabricacionAbierta")]
+        [Route("obtenerProductoConOrdenDeFabricacionAbierta/{CentroCosto}")]
         public dynamic obtenerProductoConOrdenDeFabricacionAbierta(string centroCosto){
             string JSONString = string.Empty;
             JSONString = JsonConvert.SerializeObject(dbBpcsVen.ObtenerProductosActualesSegunCentroDeCosto(centroCosto));
