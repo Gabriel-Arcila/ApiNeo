@@ -3,6 +3,7 @@ using ConsultasSQL.Model;
 using System.Data.OleDb;
 using System.Data;
 using Newtonsoft.Json;
+using ConsultasSQL.Logic;
 
 namespace ConsultasSQL.Controllers{
     [ApiController]
@@ -11,6 +12,8 @@ namespace ConsultasSQL.Controllers{
     {
         private DBconexionBPCS conexionBPCS = new DBconexionBPCS();
         private OleDbCommand obj = new OleDbCommand();
+
+        private BPCSVen dbBpcsVen = new BPCSVen();
         OleDbDataReader objResult;
 
         [HttpGet]
@@ -26,6 +29,14 @@ namespace ConsultasSQL.Controllers{
             string JSONString = string.Empty;
             JSONString = JsonConvert.SerializeObject(dataTable);
             obj.Connection = conexionBPCS.CodCerrarConex();
+            return JSONString;
+        }
+
+        [HttpGet]
+        [Route("obtenerProductoConOrdenDeFabricacionAbierta")]
+        public dynamic obtenerProductoConOrdenDeFabricacionAbierta(string centroCosto){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(dbBpcsVen.ObtenerProductosActualesSegunCentroDeCosto(centroCosto));
             return JSONString;
         }
     }
