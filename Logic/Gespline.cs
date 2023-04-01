@@ -10,11 +10,11 @@ namespace ConsultasSQL.Logic{
     {
         private DbIngDoc conexionIngDoc = new DbIngDoc();
         private SqlCommand CommandIngDoc = new SqlCommand();
-        private SqlDataReader? DataReaderIngDoc;
+        private SqlDataReader DataReaderIngDoc;
 
         private DbSIPDATABASE conexionSIPDATABASE = new DbSIPDATABASE();
         private SqlCommand comandSIPDATABASE = new SqlCommand();
-        SqlDataReader? DataReaderSIPDATABASE;
+        SqlDataReader DataReaderSIPDATABASE;
 
         public List<string> MaquinasGesplineActivos1turno(){
             List<string> maquina = new List<string>();
@@ -45,7 +45,7 @@ namespace ConsultasSQL.Logic{
                 comandSIPDATABASE.CommandText = @"
                         SELECT CUADROPNFINAL.CODIGOPROCESO
                         FROM SIPDATABASE.dbo.CUADROPNFINAL 
-                        WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),-1) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '6:00:00'
+                        WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),-1) + '17:50:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '6:00:00'
                         GROUP BY CUADROPNFINAL.CODIGOPROCESO
                         ORDER BY CUADROPNFINAL.CODIGOPROCESO;
                 ";  
@@ -67,7 +67,7 @@ namespace ConsultasSQL.Logic{
                 comandSIPDATABASE.CommandText = @"
                         SELECT CUADROPNFINAL.CODIGOPROCESO
                         FROM SIPDATABASE.dbo.CUADROPNFINAL
-                        WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),1) + '6:00:00'
+                        WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '17:50:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),1) + '6:00:00'
                         GROUP BY CUADROPNFINAL.CODIGOPROCESO
                         ORDER BY CUADROPNFINAL.CODIGOPROCESO;
                 ";  
@@ -526,11 +526,46 @@ namespace ConsultasSQL.Logic{
             }
             return datos;
         }
+        public Dictionary<string,List<DateTime>> obtenerLaPrimeraParaPorLinea(List<List<string>> datos,string cadenaIdRegistros){
+            DataTable dataTable = new DataTable();
+            List<string> maquinas;
+            Dictionary<string,List<DateTime>> diccionario = new Dictionary<string,List<DateTime>>();
+            DateTime hoy = DateTime.Now;
+            int turno = 0;
+            if(hoy.Hour >= 6 || hoy.Hour < 18){
+                maquinas = this.MaquinasGesplineActivos1turno();
+            }else if(hoy.Hour >= 18 || hoy.Hour < 24){
+                maquinas = this.MaquinasGesplineActivos2turnoAntes0am();
+            }else{
+                maquinas = this.MaquinasGesplineActivos2turnoDespues0am();
+            }
+
+            foreach(DataRow row in dataTable.Rows)
+            {
+                    comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
+                    comandSIPDATABASE.CommandText = @"
+                        SELECT Top 1 CUADROPNFINAL.CODIGOPROCESO,PARADASEJECUTADAS.FECHAYHORAPARADA,PARADASEJECUTADAS.TIMESPAN
+                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
+                        WHERE CUADROPNFINAL.FECHAENTRADA >= CONVERT(DATE,GETDATE()) And CUADROPNFINAL.CODIGOPROCESO = '"+ row["CODIGOPROCESO"].ToString() + @"'
+                        ORDER BY PARADASEJECUTADAS.FECHAYHORAPARADA;
+                    ";  
+                    DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
+
+                    if(DataReaderSIPDATABASE.Read()){
+                        List<DateTime> tiempos = new List<DateTime>();
+                        tiempos.Add(DataReaderSIPDATABASE.GetDateTime(1));
+                        tiempos.Add(DataReaderSIPDATABASE.GetDateTime(2));
+                        diccionario.Add(row["CODIGOPROCESO"].ToString(),tiempos);
+                    }
+                    comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
+            }
+
+                string JSONString = string.Empty;
+                JSONString = JsonConvert.SerializeObject(diccionario);
+                return JSONString;
+
+            return diccionario;
+        }
         
-
-
-        // public Dictionary<string,float> ttiempoPerdidoActual2turnoDespues0am(){
-
-        // }
     }
 }
