@@ -70,5 +70,13 @@ namespace ConsultasSQL.Controllers{
             JSONString = JsonConvert.SerializeObject(gespline.obtenerParadasActualesConFiltro(gespline.obtenerParadasActuales1turno(centroCosto),cadenas));
             return JSONString;
         }
+
+        [HttpGet]
+        [Route("obtenerLaPrimeraParaPorLinea")]
+        public dynamic obtenerLaPrimeraParaPorLinea(){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(gespline.obtenerLaPrimeraParaPorLinea());
+            return JSONString;
+        }
     }
 }

@@ -119,48 +119,6 @@ namespace ConsultasSQL.Controllers{
             return JSONString;
         }
                 
-            [HttpGet]
-            [Route("PrimeraParadaPorLinea")]
-            public dynamic obtenerPrimeraParadaPorLinea(){
-                var dataTable = new DataTable();
-                Dictionary<string,List<DateTime>> diccionario = new Dictionary<string,List<DateTime>>(); 
-  
-                comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
-                comandSIPDATABASE.CommandText = @"
-                        SELECT  CUADROPNFINAL.CODIGOPROCESO
-                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
-                        WHERE CUADROPNFINAL.FECHAENTRADA >= CONVERT(DATE,GETDATE())
-                        Group BY CUADROPNFINAL.CODIGOPROCESO
-                        ORDER BY CUADROPNFINAL.CODIGOPROCESO;
-                    ";
-                DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
-                dataTable.Load(DataReaderSIPDATABASE);
-                comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
-
-                foreach(DataRow row in dataTable.Rows)
-                {
-                    comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
-                    comandSIPDATABASE.CommandText = @"
-                        SELECT Top 1 CUADROPNFINAL.CODIGOPROCESO,PARADASEJECUTADAS.FECHAYHORAPARADA,PARADASEJECUTADAS.TIMESPAN
-                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
-                        WHERE CUADROPNFINAL.FECHAENTRADA >= CONVERT(DATE,GETDATE()) And CUADROPNFINAL.CODIGOPROCESO = '"+ row["CODIGOPROCESO"].ToString() + @"'
-                        ORDER BY PARADASEJECUTADAS.FECHAYHORAPARADA;
-                    ";  
-                    DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
-
-                    if(DataReaderSIPDATABASE.Read()){
-                        List<DateTime> tiempos = new List<DateTime>();
-                        tiempos.Add(DataReaderSIPDATABASE.GetDateTime(1));
-                        tiempos.Add(DataReaderSIPDATABASE.GetDateTime(2));
-                        diccionario.Add(row["CODIGOPROCESO"].ToString(),tiempos);
-                    }
-                    comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
-                }
-
-                string JSONString = string.Empty;
-                JSONString = JsonConvert.SerializeObject(diccionario);
-                return JSONString;
-            }
 
             [HttpGet]
             [Route("obtenerCajasPorHoraPropia/{tiempo}")]

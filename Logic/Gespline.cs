@@ -526,7 +526,7 @@ namespace ConsultasSQL.Logic{
             }
             return datos;
         }
-        public Dictionary<string,List<DateTime>> obtenerLaPrimeraParaPorLinea(List<List<string>> datos,string cadenaIdRegistros){
+        public Dictionary<string,List<DateTime>> obtenerLaPrimeraParaPorLinea(){
             DataTable dataTable = new DataTable();
             List<string> maquinas;
             Dictionary<string,List<DateTime>> diccionario = new Dictionary<string,List<DateTime>>();
@@ -540,30 +540,28 @@ namespace ConsultasSQL.Logic{
                 maquinas = this.MaquinasGesplineActivos2turnoDespues0am();
             }
 
-            foreach(DataRow row in dataTable.Rows)
+            foreach(string maquina in maquinas)
             {
                     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeAbrirConex();
                     comandSIPDATABASE.CommandText = @"
-                        SELECT Top 1 CUADROPNFINAL.CODIGOPROCESO,PARADASEJECUTADAS.FECHAYHORAPARADA,PARADASEJECUTADAS.TIMESPAN
-                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL  ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
-                        WHERE CUADROPNFINAL.FECHAENTRADA >= CONVERT(DATE,GETDATE()) And CUADROPNFINAL.CODIGOPROCESO = '"+ row["CODIGOPROCESO"].ToString() + @"'
+                        SELECT Top 1 TUPLAEJECUCION.CODIGOPROCESO,PARADASEJECUTADAS.FECHAYHORAPARADA,PARADASEJECUTADAS.TIMESPAN
+                        FROM SIPDATABASE.dbo.PARADASEJECUTADAS 
+                        INNER JOIN ENTRADAEJECUCION ON ENTRADAEJECUCION.CODIGOENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
+                        INNER JOIN TUPLAEJECUCION ON TUPLAEJECUCION.CODIGOTUPLA = ENTRADAEJECUCION.CODIGOTUPLA
+                        INNER JOIN TRANSMICIONWEB ON TRANSMICIONWEB.CODIGOENTRADAEJECUCION = ENTRADAEJECUCION.CODIGOENTRADAEJECUCION
+                        WHERE  TUPLAEJECUCION.CODIGOPROCESO = '"+ maquina + @"'
                         ORDER BY PARADASEJECUTADAS.FECHAYHORAPARADA;
-                    ";  
+                    ";
                     DataReaderSIPDATABASE = comandSIPDATABASE.ExecuteReader();
 
                     if(DataReaderSIPDATABASE.Read()){
                         List<DateTime> tiempos = new List<DateTime>();
                         tiempos.Add(DataReaderSIPDATABASE.GetDateTime(1));
                         tiempos.Add(DataReaderSIPDATABASE.GetDateTime(2));
-                        diccionario.Add(row["CODIGOPROCESO"].ToString(),tiempos);
+                        diccionario.Add(maquina,tiempos);
                     }
                     comandSIPDATABASE.Connection = conexionSIPDATABASE.OpeCerrarConex();
             }
-
-                string JSONString = string.Empty;
-                JSONString = JsonConvert.SerializeObject(diccionario);
-                return JSONString;
-
             return diccionario;
         }
         
