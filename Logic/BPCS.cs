@@ -189,7 +189,7 @@ namespace ConsultasSQL.Logic{
 
             CommandBPCS.Connection = conexionBPCS.CodAbrirConex();
             CommandBPCS.CommandText = @"
-                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY)
+                        SELECT ITH.THWRKC, ITH.TPROD, Sum(ITH.TQTY) AS PRODUCCION
                         FROM C20A237W.VENLX835F.IIM IIM, C20A237W.VENLX835F.ITH ITH
                         WHERE ITH.TPROD = IIM.IPROD AND ((ITH.TTYPE='R') AND (ITH.TTDTE ='"+ DateTime.Now.AddDays(+1).ToString("yyyyMMdd") +@"') AND (ITH.TWHS='PT ') AND (ITH.THTIME>=180000 And ITH.THTIME<=235959))
                         GROUP BY ITH.THWRKC, ITH.TPROD
