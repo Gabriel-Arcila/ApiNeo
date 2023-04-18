@@ -27,7 +27,9 @@ namespace ConsultasSQL.Logic{
 
             foreach (DataRow row in dataTable.Rows)
             {
-                ProductosActuales.Add(row["IdProducto"].ToString(),row["Descripcion"].ToString());
+                if(! ProductosActuales.ContainsKey(row["IdProducto"].ToString())){
+                    ProductosActuales.Add(row["IdProducto"].ToString(),row["Descripcion"].ToString());
+                }
             }
 
             return ProductosActuales;
