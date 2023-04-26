@@ -113,7 +113,7 @@ namespace ConsultasSQL.Logic{
                     FROM SIPDATABASE.dbo.PARADASEJECUTADAS 
                     INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
                     INNER JOIN SIPDATABASE.dbo.PARADAS ON PARADASEJECUTADAS.CODIGOPARADA  = PARADAS.CODIGOPARADA
-                    WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA <= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),1) + '23:59:59'
+                    WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '17:50:00' AND CUADROPNFINAL.FECHAENTRADA <= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),1) + '23:59:59'
                     GROUP BY CUADROPNFINAL.CODIGOPROCESO
                     ORDER BY  CUADROPNFINAL.CODIGOPROCESO;
                 ";
@@ -136,7 +136,7 @@ namespace ConsultasSQL.Logic{
                     FROM SIPDATABASE.dbo.PARADASEJECUTADAS 
                     INNER JOIN SIPDATABASE.dbo.CUADROPNFINAL ON CUADROPNFINAL.CODENTRADAEJECUCION = PARADASEJECUTADAS.CODIGOENTRADAEJECUCION 
                     INNER JOIN SIPDATABASE.dbo.PARADAS ON PARADASEJECUTADAS.CODIGOPARADA  = PARADAS.CODIGOPARADA
-                    WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),-1) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),1) + '6:00:00'
+                    WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),-1) + '17:50:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),1) + '6:00:00'
                     GROUP BY CUADROPNFINAL.CODIGOPROCESO
                     ORDER BY  CUADROPNFINAL.CODIGOPROCESO;
                 ";
@@ -176,7 +176,7 @@ namespace ConsultasSQL.Logic{
             comandSIPDATABASE.CommandText = @"
                     SELECT CUADROPNFINAL.CODIGOPROCESO, SUM(CUADROPNFINAL.HORASEJECUTADAS) AS [Tiempo Ejecutado]
                     FROM SIPDATABASE.dbo.CUADROPNFINAL
-                    WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '17:55:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '23:59:59'
+                    WHERE CUADROPNFINAL.FECHAENTRADA >= DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '17:50:00' AND CUADROPNFINAL.FECHAENTRADA < DATEADD(dd,DATEDIFF(dd,0,GETDATE()),0) + '23:59:59'
                     GROUP BY CUADROPNFINAL.CODIGOPROCESO
                     ORDER BY  CUADROPNFINAL.CODIGOPROCESO;
                 ";
@@ -241,7 +241,11 @@ namespace ConsultasSQL.Logic{
             
             for (int i = 0; i < llaves.Count(); i++)
             {
-                tiempoEjecutado[llaves[i]] = tiempoEjecutado[llaves[i]] - tiempoPerdido[llaves[i]];
+                if(tiempoPerdido.ContainsKey(llaves[i])){
+                    tiempoEjecutado[llaves[i]] = tiempoEjecutado[llaves[i]] - tiempoPerdido[llaves[i]];
+                }else{
+                    tiempoEjecutado[llaves[i]] = tiempoEjecutado[llaves[i]];
+                }
             }
             return tiempoEjecutado;
         }
