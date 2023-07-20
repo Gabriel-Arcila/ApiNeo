@@ -10,5 +10,6 @@ namespace ConsultasSQL.Model
         public string apellido;
         public string departamento;
         public string cargo;
+        public string compania;
     }
 }
