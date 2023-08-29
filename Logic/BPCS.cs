@@ -511,7 +511,6 @@ namespace ConsultasSQL.Logic{
             var dataTable = new DataTable();
             var dataTable2 = new DataTable();
 
-
             List<string> maquinas = new List<string>();
             //* si band es true estamos a las 6pm a 11:59 am
             if(band){
@@ -603,7 +602,6 @@ namespace ConsultasSQL.Logic{
             }
             return producionMaquinaPorHora;
         }
-
         
-    }   
+    }
 }

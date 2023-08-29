@@ -6,7 +6,7 @@ namespace ConsultasSQL.Model
 {
     public class DbBpcsVen
     {
-        private SqlConnection ConOpe = new SqlConnection("Data Source = DCTDTDB02; Initial Catalog = DbBpcsVen; TrustServerCertificate=True;Persist Security Info=True;User ID=usrLectura;Password=usrLectura");
+        private SqlConnection ConOpe = new SqlConnection("Data Source = DCTDTDB02; Initial Catalog = DbBpcsVen; TrustServerCertificate=True;Persist Security Info=True;User ID=usrLectura;Password=");
         
         public SqlConnection OpeAbrirConex()
         {

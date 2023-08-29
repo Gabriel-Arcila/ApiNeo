@@ -34,5 +34,24 @@ namespace ConsultasSQL.Logic{
 
             return ProductosActuales;
         }
+        public string ObtenerDescripcionDelProductoPorSuCodigo(string codigoProducto){
+            string descripcion = "";
+            DataTable dataTable = new DataTable();
+            CommandBPCSVen.Connection = conexionBPCSVen.OpeAbrirConex();
+            CommandBPCSVen.CommandText = @"
+                SELECT TOP (1) IDESC
+                FROM dbo.Vista_Producto
+                WHERE (IPROD='" + codigoProducto + @"')
+            ";
+            DataReaderBPCSVen = CommandBPCSVen.ExecuteReader();
+            dataTable.Load(DataReaderBPCSVen);
+            
+            foreach (DataRow row in dataTable.Rows)
+            {
+                descripcion = row["IDESC"].ToString();
+            }
+
+            return descripcion;
+        }
     }
 }

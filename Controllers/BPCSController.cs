@@ -39,5 +39,13 @@ namespace ConsultasSQL.Controllers{
             JSONString = JsonConvert.SerializeObject(dbBpcsVen.ObtenerProductosActualesSegunCentroDeCosto(centroCosto));
             return JSONString;
         }
+
+        [HttpGet]
+        [Route("ObtenerDescripcionDelProductoPorSuCodigo/{CodProduc}")]
+        public dynamic ObtenerDescripcionDelProductoPorSuCodigo(string CodProduc){
+            string JSONString = string.Empty;
+            JSONString = JsonConvert.SerializeObject(dbBpcsVen.ObtenerDescripcionDelProductoPorSuCodigo(CodProduc));
+            return JSONString;
+        }
     }
 }
